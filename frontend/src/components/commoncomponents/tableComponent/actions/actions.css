@@ -1,0 +1,26 @@
+.action-container{
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+}
+
+.action-btn{
+    /* padding: 5px 10px; */
+    width: -webkit-fill-available;
+    gap: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    padding: 0 15px;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 500;
+    /* height: 35px; */
+    min-height: 22px;
+ 
+}
+
+.action-btn:focus{
+    box-shadow: 0 0 0 2px black;
+}

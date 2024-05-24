@@ -1,0 +1,63 @@
+@import '@radix-ui/colors/black-alpha.css';
+
+.horizontal{
+    display: flex;
+    padding: 0 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+
+}
+
+.vertical{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+
+
+/* reset */
+input,
+textarea,
+button {
+  all: unset;
+  box-sizing: border-box;
+}
+
+.LabelRoot {
+  /* font-size: 15px; */
+  font-weight: 500;
+  line-height: 35px;
+  color: black;
+}
+
+.Textarea {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+  
+    /* font-size: 15px; */
+    color: white;
+    background-color: var(--black-a5);
+    box-shadow: 0 0 0 1px var(--black-a9);
+  }
+
+  .Textarea {
+    resize: none;
+    padding: 10px;
+  }
+
+  .custformtextarea{
+    width: 60%;
+   }
+   
+   .custformlabel{
+   
+   }
+

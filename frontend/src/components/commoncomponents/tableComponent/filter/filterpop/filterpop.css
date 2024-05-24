@@ -1,0 +1,9 @@
+.filterContentclass{
+    max-height: 50vh;
+    overflow: auto;
+    padding-bottom: 0;
+}
+
+.filterActive{
+    border-bottom: solid #6c9eff;
+}

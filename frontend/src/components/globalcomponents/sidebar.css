@@ -1,0 +1,144 @@
+/* Updated styles for sidebar */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  overflow-x: hidden;
+  left: 0;
+  width: 70px;
+  height: calc(100% - 0px);
+  background-color: rgb(247, 247, 245);
+  color: black;
+  transition: width 200ms ease-in-out;
+  /* padding-top: 50px; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition-timing-function: cubic-bezier(0.4,0,0.2,1);
+  z-index: 2;
+  border-right: 1px solid rgb(233, 233, 231);
+  }
+  
+  .sidebar.open {
+    left: 0;
+    width: 250px;
+    transition: width 200ms ease-in-out;
+  }
+
+  .sidebarlist{
+    margin-left: 40px;
+    position: absolute;
+    min-width: 100px;
+  }
+
+  .sidebarlist.close{
+    visibility: hidden;
+  }
+  
+  /* Add styles for icons */
+  .icon {
+    font-size: 20px;
+    color: rgba(55, 53, 47, 0.65);
+    
+  
+   
+  }
+  
+
+
+  .menu{
+    padding-left:0 ;
+    width: 100%;
+    margin-top: 0;
+  }
+  
+  /* Updated styles for menu items */
+
+  .top-item{
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    transition: background 150ms ease 0s;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #5f5e5b;
+    margin-left: 10px;
+    margin-right: 10px;
+    font-weight: 500;
+    padding-left: 0;
+    padding-bottom: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: rgb(247, 247, 245);
+    margin-bottom: 10px;
+  }
+
+  .menu-item {
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    transition: background 150ms ease 0s;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #5f5e5b;
+    margin-left: 10px;
+    margin-right: 10px;
+    font-weight: 400;
+    /* font-size: 15px; */
+  }
+
+  .menu-item:hover {
+    background-color: #00000008;
+  }
+
+  .menu-item:active {
+    background-color: #00000018;
+  }
+
+
+  .menu-item.selecteditem{
+    background-color: rgba(0, 0, 0, 0.03);
+    font-weight: 500;
+    color: rgb(29, 27, 22);
+  }
+
+  .sub-menu-item{
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding-left: 40px;
+    user-select: none;
+    transition: background 150ms ease 0s;
+    border-radius: 6px;
+    color: #5f5e5b;
+    margin-left: 10px;
+    margin-right: 10px;
+    font-weight: 500;
+  }
+
+  .sub-menu-item:hover{
+    background-color: #00000008;
+  }
+
+  .sub-menu-item:focus{
+    background-color: #00000018;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+  }
+  

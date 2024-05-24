@@ -1,0 +1,9 @@
+.paymenthisdivclass{
+    padding: 0;
+    margin: 20px 0px;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 0px;
+    display: flex;
+    flex-wrap: wrap;
+}

@@ -1,0 +1,7 @@
+.calender-button{
+    width: 10rem;
+}
+
+.react-datepicker-wrapper{
+    width: -webkit-fill-available;
+}

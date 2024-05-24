@@ -1,0 +1,149 @@
+.deleteicon{
+    height: 1.5rem;
+    width: 1.5rem;
+    cursor: pointer;
+}
+
+
+
+.horizontal{
+    display: flex;
+    padding: 0 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+  
+  }
+
+  .customertrigger{
+    display: flex;
+    /* padding: 0 20px; */
+    /* flex-wrap: wrap; */
+    gap: 15px;
+    width: 50%;
+    
+  }
+  
+  .shorizontal{
+    display: flex;
+    padding: 0 20px;
+    gap: 15px;
+    align-items: center;
+    color: rgb(55, 53, 47);
+  
+  }
+
+  .producttrigger{
+    width: 100% !important;
+  }
+
+  
+  .acctriggerclass{
+    min-width: 100px;
+    width: 150px;
+  }
+  
+
+
+
+.sizetextclass{
+  width:80% !important;
+  color: black;
+  background: rgba(242, 241, 238, 0.6);
+  line-height: 20px;
+  padding: 4px 10px;
+  height: 24px;
+  box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px inset;
+  
+}
+
+
+
+.sizetextclass:focus {
+  box-shadow: 0 0 0 2px rgb(151, 190, 238);
+}
+
+.sizedivclass{
+  display: flex;
+  width: 123.6px;
+}
+
+.measurediv{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    
+}
+
+.accdivclass{
+  display: flex;
+  width: 20%;
+}
+
+.acctextclass{
+  width:80% !important;
+}
+
+.paymenticon{
+  height: 20px;
+  width: 40px;
+}
+
+
+
+
+
+
+
+
+/* CSS */
+.button-55 {
+  
+  background-color: #ffffff;
+  background-image: none;
+  background-position: 0 90%;
+  background-repeat: repeat no-repeat;
+  background-size: 4px 3px;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 2px;
+  box-shadow: rgba(0, 0, 0, .2) 15px 28px 25px -18px;
+  box-sizing: border-box;
+  color: #29ab1e;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Neucha, sans-serif;
+  /* font-size: 1rem; */
+  line-height: 15px;
+  outline: none;
+  padding: .3rem;
+  text-decoration: none;
+  transition: all 235ms ease-in-out;
+
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-55:hover {
+  box-shadow: rgba(0, 0, 0, .3) 2px 8px 8px -5px;
+  transform: translate3d(0, 2px, 0);
+}
+
+.button-55:focus {
+  box-shadow: rgba(0, 0, 0, .3) 2px 8px 4px -6px;
+}
+
+.checkclass{
+  height: 20px;
+  width: 20px;
+}
+
+
+
+
+
+  
+  

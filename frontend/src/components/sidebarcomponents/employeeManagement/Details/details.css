@@ -1,0 +1,135 @@
+/* .detailoutercomp{
+  padding: 0px 20px;
+  min-width: calc(80%);
+  width: -webkit-fill-available;
+  max-width: calc(100%);
+} */
+
+/* .switchtabletabs{
+    display: flex;
+    border-bottom: 1px solid rgb(233, 233, 231);
+} */
+
+.tabletabbtn{
+    padding-bottom: 5px;
+}
+
+
+.tabletabdiv {
+    /* font-size: 15px; */
+    line-height: 1;
+    font-weight: 500;
+    /* height: 25px; */
+    background-color: white;
+    color: #515151b1;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 8px 8px;
+    display: flex;
+    gap: 10px;
+    /* border-bottom: 1px solid rgb(233, 233, 231); */
+    align-items: center;
+    justify-content: start;
+    border-radius: 4px;
+    
+  }
+  .tabletabdiv:hover {
+    background-color: rgba(163, 163, 163, 0.11);
+    /* color: black; */
+  }
+  .tabletabdiv:focus {
+    background-color: rgba(163, 163, 163, 0.11);
+   
+  }
+
+  .tabletabbtn.select{
+    background-color: white;
+    border-bottom: 2px solid rgb(28 28 27);
+
+  }
+
+  .tabletabdiv.select{
+  
+    color: rgb(28 28 27);
+    border-radius: 4px;
+  }
+
+  .infocomp{
+    padding: 40px 0px;
+    max-width: 80%;
+    margin: auto;
+    padding-bottom: 0;
+  }
+
+  .tabheading{
+    width: 732px;
+    font-size: xx-large;
+    padding-bottom: 20px;
+    font-weight: 600;
+    color: #000000;
+    /* border-bottom: 1px solid rgb(233, 233, 231); */
+    margin: auto;
+  }
+
+  .billtabheading{
+   
+    font-size: xx-large;
+    padding-bottom: 20px;
+    font-weight: 600;
+    color: #000000;
+    /* border-bottom: 1px solid rgb(233, 233, 231); */
+    margin: auto;
+  }
+
+  .primarybtn{
+    padding-bottom: 5px;
+  }
+
+  .primarybtndiv{
+     /* font-size: 15px; */
+     line-height: 1;
+     font-weight: 500;
+     /* height: 25px; */
+     background-color: white;
+     color: #7b7978b0;
+     cursor: pointer;
+     font-weight: 500;
+     padding: 8px 8px;
+     display: flex;
+     gap: 10px;
+     /* border-bottom: 1px solid rgb(233, 233, 231); */
+     align-items: center;
+     justify-content: start;
+     border-radius: 4px;
+     transition: background 20ms ease-in 0s;
+     width: fit-content;
+  }
+
+  .primarybtndiv:hover {
+    background-color: rgba(163, 163, 163, 0.11);
+    /* color: black; */
+  }
+  .primarybtndiv:focus {
+    background-color: rgba(163, 163, 163, 0.11);
+    /* box-shadow: 0 0 0 2px rgb(151, 190, 238);    */
+  }
+
+  .primarybtn:focus {
+    background-color: rgba(163, 163, 163, 0.11) !important;
+  }
+
+  .primarybtndiv:active {
+    background-color: rgba(163, 163, 163, 0.37);
+  }
+
+  .primarybtn.select {
+    background-color: white;
+    border-bottom: 2px solid rgb(28 28 27);
+  }
+
+  .primarybtndiv.select{
+  
+    color: rgb(28 28 27);
+    border-radius: 0;
+  }
+

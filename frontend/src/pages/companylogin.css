@@ -1,0 +1,55 @@
+.loginlayout{
+    position: fixed;
+    top: 0;
+    padding: 50px;
+    /* right: 0; */
+    left: 0;
+    height: calc(100vh - 100px);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding-top: 200px;
+ 
+  
+   
+    
+ 
+}
+
+.formlayout{
+    position: fixed;
+    top: 0;
+    right: 0;
+   
+    height: calc(100vh - 100px);
+    width: 0px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding-top: 200px;
+    z-index: 1;
+    transition: width 0.3s ease;
+}
+
+.opensideform{
+   
+    
+    padding: 50px;
+    padding-top: 200px;
+    transition-delay: 0s; 
+    width: 300px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.mainlayout{
+    position: relative;
+    background-color: antiquewhite;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    /* justify-content: center; */
+    padding: 100px;
+    flex-direction: column;
+    align-items: center;
+    /* padding-left: 600px; */
+}

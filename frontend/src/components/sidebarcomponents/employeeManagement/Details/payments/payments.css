@@ -1,0 +1,36 @@
+.dailogcontentclass{
+    width: fit-content;
+}
+
+.formheading{
+    font-size: 17px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #000000;
+    border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+    /* margin: auto; */
+    /* position: sticky; */
+    top: 0;
+    /* z-index: 1; */
+    /* background: white; */
+}
+.formbottomdiv{
+    display: flex;
+    justify-content: end;
+    /* margin: 0px 20px 20px; */
+    margin-bottom: 0;
+    padding: 20px;
+    border-top: 1px solid rgb(233, 233, 231);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: white;
+    width: -webkit-fill-available;
+    z-index: 2;
+    gap: 20px;
+}
+.formclass{
+    max-height: 80vh;
+    overflow: auto;
+}

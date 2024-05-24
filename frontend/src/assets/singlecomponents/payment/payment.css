@@ -1,0 +1,11 @@
+.paymentdivclass{
+display: flex;
+gap: 15px;
+}
+
+.paymenttextclass{
+width: 100px !important;
+
+}
+
+

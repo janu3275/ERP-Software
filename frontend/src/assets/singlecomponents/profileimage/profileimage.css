@@ -1,0 +1,57 @@
+
+    
+    .profile-container {
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        height: 5rem;
+        width: 5rem;
+        border-radius: 50%;
+        background: rgb(229 250 228);
+        color: #0e4300;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        overflow: hidden;
+        transition: background 50ms ease;
+    }
+
+    .profile-container:hover {
+        background: rgb(202, 243, 200);
+    }
+    
+    .profilepic {
+      position: absolute;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    
+    .progress-container {
+      margin-top: 5px;
+    }
+    
+   
+  
+    .profilecover{
+      position: absolute;
+      width: auto;
+      height: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      
+    }
+  
+    .profilecover:hover{
+      background-color: rgba(0, 0, 0, 0.249);
+    }
+  
+   
+  
+  
+  
+  

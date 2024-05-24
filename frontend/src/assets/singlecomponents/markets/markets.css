@@ -1,0 +1,39 @@
+.market-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-gap: 40px;
+  max-height: 500px;
+  overflow-y: auto;
+  /* position: absolute; */
+  /* max-width: calc(100% - 500px); */
+  width: calc(100% - 400px);
+  z-index: 1;
+  /* background-color: white; */
+  padding: 40px;
+  /* border-radius: 22px; */
+  /* box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px; */
+  /* padding-top: 40px; */
+  }
+  
+  /* Optional: To hide horizontal scrollbar */
+  
+  .singlemarketplace{
+    padding: 10px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 22px;
+    height: fit-content;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+
+
+  .singlemarketplace:focus{
+    border: solid 4px black;
+  }
+
+  

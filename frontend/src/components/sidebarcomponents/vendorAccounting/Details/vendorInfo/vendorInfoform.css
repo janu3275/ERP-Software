@@ -1,0 +1,10 @@
+.formsection{
+    display: flex;
+    gap: 20px;
+}
+
+.formlabel{
+    
+    color: rgb(82 78 70);
+    line-height: normal;
+}

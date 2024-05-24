@@ -1,0 +1,213 @@
+.resizable-table {
+  position: relative;
+  overflow: auto;
+  /* width: 100%; */
+  /* max-width: 100%; */
+  /* margin: 0px 10px; */
+  }
+
+  .table-upper-panel{
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+  }
+  
+  .table-common-functions{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #7b7978b0;
+  }
+  
+  .table-header-row{
+    border-bottom: 1px solid rgb(233, 233, 231);
+    /* padding: 8px; */
+    text-align: left;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-width: max-content;
+    color: #515151b1;
+  }
+
+  .table-header-cell{
+    position: relative;
+    flex: none;
+    border-right: 1px solid rgb(233, 233, 231);
+    padding: 5px 8px;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    min-width: 10rem;
+    width: 10rem;
+    /* min-height: 40px; */
+  }
+
+  .table-checkbox{
+        /* position: relative; */
+    /* flex: none; */
+    border-right: 1px solid rgb(233, 233, 231);
+    padding: 0px 15px;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    /* min-width: 10rem; */
+    /* width: 10rem; */
+    /* min-height: 40px; */
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+  }
+
+  .header-content{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-content-box{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .table-row{
+    border-bottom: 1px solid rgb(233, 233, 231);
+    border-top: 0;
+    /* padding: 8px; */
+    text-align: left;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-height: 22px;
+    min-width: max-content;
+  }
+
+  .table-row-cell{
+    flex: none;
+    border-right: 1px solid rgb(233, 233, 231);
+    padding: 5px 8px;
+    min-height: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    min-width: 10rem;
+    white-space: nowrap;
+    width: 10rem;
+    background-color: white;
+    overflow: hidden;
+    /* min-height: 40px; */
+  }
+
+
+  
+  .resizable-handle {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    z-index: 2;
+  }
+
+  .resizable-handle:hover{
+   background-color: #6c9eff;
+  }
+
+  .resizable-handle:focus{
+    background-color: #6c9eff;
+   }
+
+   .resizable-handle[data-state="checked"]{
+    background-color: #6c9eff;
+   }
+  
+  .resizable-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    cursor: ew-resize;
+  }
+  .table-container {
+    overflow: auto;
+    max-width: 100%;
+    /* border: 1px solid rgb(233, 233, 231); */
+    /* transform: translateX(-5px) translateY(-5px); */
+    /* padding: 0px 10px 10px 0px; */
+    padding-bottom: 5px;
+    border-top: 1px solid rgb(233, 233, 231);
+    /* border-bottom: 1px solid rgb(233, 233, 231); */
+  }
+
+  .outer-row-container{
+   overflow-y: scroll;
+   overflow-x: hidden ;
+   max-height: calc(100vh - 266px);
+   padding-right: 5px;
+   width: fit-content;
+  }
+
+  .outer-table-container{
+      /* padding-bottom: 5px; */
+      padding-right: 5px;
+      /* overflow-x: scroll; */
+      overflow: auto;
+      max-height: calc(-236px + 100vh);
+  }
+   
+
+  .action-row-cell{
+    border-right: 0;
+    position: sticky;
+    right: 0;
+    border-left: 1px solid rgb(233, 233, 231);
+    /* border-bottom: 1px solid rgb(233, 233, 231); */
+    background-color: white;
+    z-index: 1;
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    min-width: 5rem;
+    min-height: 22px;
+  }
+
+  .action-header-cell{
+    border-right: 0;
+    position: sticky;
+    right: 0;
+    border-left: 1px solid rgb(233, 233, 231);
+    background-color: white;
+    z-index: 1;
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    min-width: 5rem;
+    min-height: 22px;
+    
+  }
+
+  .row-container{
+    width: max-content;
+    min-width: 100%;
+    color: #37352f;
+   
+  }
+
+  .header-container{
+    width: max-content;
+    min-width: 100%;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 5;
+  }
+
+
+  

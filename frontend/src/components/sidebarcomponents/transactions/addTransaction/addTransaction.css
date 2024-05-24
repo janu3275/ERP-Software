@@ -1,0 +1,79 @@
+button{
+  all: unset;
+}
+
+.leftbar{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: solid 1px #0000002e;
+    padding: 20px;
+}
+
+.rightbar{
+    padding: 20px;
+}
+
+
+.Button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: start;
+    border-radius: 4px;
+    padding: 0 15px;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 500;
+    height: 35px;
+  }
+  .Button.violet {
+    background-color: white;
+    color: var(--violet-11);
+    box-shadow: 0 2px 10px var(--black-a7);
+  }
+  .Button.violet:hover {
+    background-color: var(--mauve-3);
+  }
+  .Button.violet:focus {
+    box-shadow: 0 0 0 2px black;
+  }
+  .Button.green {
+    background-color: var(--green-4);
+    color: var(--green-11);
+  }
+  .Button.green:hover {
+    background-color: var(--green-5);
+  }
+  .Button.green:focus {
+    box-shadow: 0 0 0 2px var(--green-7);
+  }
+
+  .Button.silver {
+    background-color: white;
+    color: rgb(136 136 136);
+    cursor: pointer;
+    font-weight: 400;
+    padding: 2px 15px;
+    display: flex;
+    gap: 10px;
+    
+  }
+  .Button.silver:hover {
+    background-color: rgba(163, 163, 163, 0.11);
+    /* color: black; */
+  }
+  .Button.silver:focus {
+    background-color: rgba(163, 163, 163, 0.11);
+    /* box-shadow: 0 0 0 2px black; */
+    /* color: rgb(84, 84, 84); */
+    color: rgb(0, 0, 0);
+    font-weight: 500;
+  }
+
+  .optHead{
+    color: rgb(37 37 37);
+    font-weight: 600;
+    display: flex;
+    /* font-size: medium; */
+  }
+

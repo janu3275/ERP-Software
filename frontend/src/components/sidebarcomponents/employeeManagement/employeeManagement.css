@@ -1,0 +1,82 @@
+.mainImgComp{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 250px;
+    background: aliceblue;
+    overflow: hidden;
+   
+}
+
+.wallimage{
+    /* position: fixed; */
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: auto;
+    
+
+}
+
+.walltitlediv{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 250px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.walltitle{
+
+}
+
+.normalDialog{
+    padding: 0;
+    overflow: hidden;
+    max-width: 60vw;
+}
+
+.normalDialogForm{
+    max-height: 75vh;
+    overflow: auto;
+    padding: 25px;
+}
+
+.primaryformsection{
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+}
+
+.primaryformsectiontitle{
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+    border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+    margin-bottom: 10px;
+    margin-top: 0px;
+    /* padding-bottom: 12px; */
+    font-size: 17px;
+    font-weight: 500;
+    width: auto;
+    color: rgb(55, 53, 47);
+}
+
+.primaryformsectioncontent{
+    /* gap: 20px; */
+    flex-direction: column;
+    display: flex;
+    margin-bottom: 10px;
+    /* padding: 20px; */
+}
+
+.formtitle{
+    padding: 10px 0px;
+    font-size: 19px;
+    font-weight: 500;
+}
+
