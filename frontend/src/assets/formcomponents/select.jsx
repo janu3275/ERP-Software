@@ -55,7 +55,7 @@ return (
     </Select.Portal>
   </Select.Root>
   </div>
-  <div style={{height:"1rem", display:"flex", justifyContent:"end", padding:"0px 20px"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div>}</div>
+  {errors[name] && <div style={{ display:"flex", justifyContent:"end", padding:"0px 20px"}}> <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div></div>}
   </div>
 )});
 

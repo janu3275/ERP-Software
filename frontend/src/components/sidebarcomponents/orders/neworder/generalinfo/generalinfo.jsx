@@ -3,10 +3,40 @@ import PropTypes from "prop-types";
 import { SelectDemo } from '../../../../../assets/singlecomponents/select/select';
 import Stextfield from '../../../../../assets/singlecomponents/singletextfield/stextfield';
 import Calendar from "../../../../../assets/singlecomponents/calender/calender";
+import { useState } from "react";
+import DialogDemo from "../../../../../assets/singlecomponents/dialog/dialog";
+import CustomerSearchComp from "../../../customerManagement/catalog/customerSearchComp";
+import SingleLabelwithtextarea from "../../../../../assets/singlecomponents/textarea/singletextarea";
 
 
 
 const Generalinfo = ({generalInfo,setGeneralInfo, allCustomer, handleDateChange, UpdateGeneralInfo, selectedorder, getTodaysdate, allCustomerInfo, viewOrder }) => {
+
+  const [openCustomerForm, setOpenCustomerForm] = useState(false)
+  const selectCustomer = (customer) => {
+  console.log(customer)
+  setGeneralInfo((prev) => {
+ 
+    return {
+      ...prev,
+      customer: {
+        ...prev.customer,
+        name: customer[0].value,
+        id: customer[0].id
+      },
+    };
+  })
+
+  setOpenCustomerForm(false)
+
+  }
+
+  const triggerOpencustomerForm = ()=>{
+    if(!openCustomerForm){
+      setOpenCustomerForm(true)
+    }
+  }
+
     return (
         <>
      
@@ -43,7 +73,7 @@ const Generalinfo = ({generalInfo,setGeneralInfo, allCustomer, handleDateChange,
                 marginBottom:"20px"
               }}
             >
-              <SelectDemo
+              {/* <SelectDemo
                 placeholder="Choose customer"
                 divclassname="primarytextdivclass"
                 labelclassname = "formlabel"
@@ -67,9 +97,32 @@ const Generalinfo = ({generalInfo,setGeneralInfo, allCustomer, handleDateChange,
                 }
                 value={generalInfo.customer.name}
                 name="customer"
-              />
+              /> */}
+
+                 <Stextfield
+                  name="customer"
+                  label="Customer"
+                  value={generalInfo.customer.name}
+                  type="text"
+                  labelclassname="formlabel"
+                  textfieldclassname="primarytextfieldclass"
+                  divclassname="primarytextdivclass"
+                  // divclassname="measurediv"
+                  placeholder="Choose customer"
+                  onclick={triggerOpencustomerForm}
+                  disabled={false}
+                />
             
-              
+            <DialogDemo Open={openCustomerForm} setOpen={setOpenCustomerForm} buttontext=""  contentclass="dailogcontentclass" btnclass = 'primarybtndiv'> 
+         {(props) => (
+          
+             
+              <CustomerSearchComp
+              {...props}
+              selectCustomer={selectCustomer}
+              />
+            )}
+         </DialogDemo>
              
            
               <div
@@ -91,6 +144,34 @@ const Generalinfo = ({generalInfo,setGeneralInfo, allCustomer, handleDateChange,
            
             </div>
 
+            <div
+              style={{
+                display: "flex",
+                gap: "20px",
+                justifyContent: "space-between",
+                marginBottom:"20px"
+              }}
+            >
+                 <SingleLabelwithtextarea
+             name="shipping_address"
+             label="Shipping address"
+             value={generalInfo.shipping_address}
+             type="text"
+             labelclassname="formlabel"
+             textfieldclassname="primarytextareaclass"
+             divclassname="primarytextdivclass"
+             placeholder="Type shipping address"
+             onChange={(e) =>
+              setGeneralInfo((prev) => {
+                return {
+                  ...prev,
+                  shipping_address: e.target.value,
+                };
+              })
+            }
+             disabled={false}
+          />
+
             <Stextfield
                   name="measurement"
                   label="Measurement given by"
@@ -111,6 +192,9 @@ const Generalinfo = ({generalInfo,setGeneralInfo, allCustomer, handleDateChange,
                   }
                   disabled={false}
                 />
+
+         
+          </div>
           </div>
         </div>
         {selectedorder && <div

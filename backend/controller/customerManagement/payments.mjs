@@ -280,12 +280,18 @@ const custPaymentHistoryApi = {
   }),
 
   getAllPaymentsByCustomer: asyncHandler(async (req, res, next) => {
+    
     // BODY VALIDATION
     const schema = Joi.object({
       customer_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
 
-    let body = req.params;
+    let body = {...req.body, ...req.params};
+
     const { error, value } = schema.validate(body);
 
     // HANDLE VALIDATION ERROR
@@ -298,6 +304,8 @@ const custPaymentHistoryApi = {
       });
     }
 
+    const { previousCursor, nextCursor } = value
+
     // PROCEEDING TOWARDS FETCHING CUSTOMER PAYMENT TRANSACTIONS
     const getPaymentsQuery = `SELECT
     ph.id AS id,
@@ -305,24 +313,53 @@ const custPaymentHistoryApi = {
     ph.payment_date,
     ph.attachment_path,
     ph.description,
-    (SELECT json_build_object(
-        'cash', pi.cash,
-        'upi', pi.upi,
-        'cheque', pi.cheque,
-        'other', pi.other
-    )) AS payment_info
+    (
+        SELECT
+            json_build_object(
+                'cash', pi.cash,
+                'upi', pi.upi,
+                'cheque', pi.cheque,
+                'other', pi.other
+            )
+    ) AS payment_info
 FROM
     cust_payment_history AS ph
-INNER JOIN
-    cust_paymentinfo AS pi ON ph.id = pi.custpayhistoryid
-WHERE ph.customer_id = $1    
-`;
+    INNER JOIN cust_paymentinfo AS pi ON ph.id = pi.custpayhistoryid
+WHERE
+    ph.customer_id = $1
+    AND ($2::date IS NULL OR ph.payment_date >= $2::date)
+    AND ($3::date IS NULL OR ph.payment_date <= $3::date)
+    AND ($4::numeric IS NULL OR (
+        COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+    ) >= $4::numeric)
+    AND ($5::numeric IS NULL OR (
+        COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+    ) <= $5::numeric)
+    AND ($6::text IS NULL OR ph.description ILIKE '%' || $6::text || '%')
+    ${nextCursor ? `AND id > ${nextCursor}` : ''}
+    ${previousCursor ? `AND id < ${previousCursor}` : ''}
+ORDER BY
+    id ASC
+LIMIT
+    $7;`;
 
     try {
+
       console.log("customer_id", value.customer_id);
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.customer_id,
+        filters.payment_date.minValue || null,
+        filters.payment_date.maxValue || null,
+        filters.amount.minValue || null,
+        filters.amount.maxValue || null,
+        filters.description || null,
+        limit
+      ]
 
       let customerPayments = (
-        await queryDB(getPaymentsQuery, [value.customer_id])
+        await queryDB(getPaymentsQuery, queryParams)
       ).rows;
 
       console.log("jkhk", customerPayments);
@@ -335,19 +372,29 @@ WHERE ph.customer_id = $1
       });
 
       console.log("klnkl", fcustomerPayments);
-      if (customerPayments) {
+      if (fcustomerPayments) {
+
+        const nextCursor = fcustomerPayments[fcustomerPayments.length - 1].id;
+        const previousCursor = fcustomerPayments[0].id;
+
         res.status(200).json({
           success: true,
           message: "Customer payments retrieved successfully",
           data: convertData(fcustomerPayments),
+          nextCursor: fcustomerPayments.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: fcustomerPayments.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
         res.status(200).json({
           success: false,
           message: "Problem in getting customer payments",
           data: customerPayments,
+          nextCursor: null, 
+          previousCursor: null
         });
       }
+
     } catch (error) {
       return res
         .status(200)
@@ -360,6 +407,10 @@ WHERE ph.customer_id = $1
     const market_id = req.market.market_id;
     const schema = Joi.object({
       market_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
 
     let body = {
@@ -404,6 +455,8 @@ WHERE ph.customer_id = $1
 
 // `;
 
+const { previousCursor, nextCursor } = value
+
 const getPaymentsQuery = `SELECT
 ph.id AS id,
 ph.customer_id,
@@ -431,51 +484,55 @@ INNER JOIN cust_paymentinfo AS pi ON ph.id = pi.custpayhistoryid
 WHERE
 ph.customer_id = $1
 AND (
-  $2 IS NULL
-  OR ph.payment_date >= $2
+  $2::date IS NULL
+  OR ph.payment_date >= $2::date
 )
 AND (
-  $3 IS NULL
-  OR ph.payment_date <= $3
+  $3::date IS NULL
+  OR ph.payment_date <= $3::date
 )
 AND (
-  $4 IS NULL
-  OR ph.description LIKE '%' || $4 || '%'
-)
-AND (
-  $5 IS NULL
+  $4::numeric IS NULL
   OR (
     COALESCE(pi.cash, 0) +
     COALESCE(pi.upi, 0) +
     COALESCE(pi.cheque, 0) +
     COALESCE(pi.other, 0)
-  ) >= $5
+  ) >= $4::numeric
 )
 AND (
-  $6 IS NULL
+  $5::numeric IS NULL
   OR (
     COALESCE(pi.cash, 0) +
     COALESCE(pi.upi, 0) +
     COALESCE(pi.cheque, 0) +
     COALESCE(pi.other, 0)
-  ) <= $6
-);` 
+  ) <= $5::numeric
+AND (
+  $6::text IS NULL
+  OR ph.description LIKE '%' || $6::text || '%'
+)
+${nextCursor ? `AND id > ${nextCursor}` : ''}
+${previousCursor ? `AND id < ${previousCursor}` : ''}
+ORDER BY id ASC
+LIMIT $7;` 
 
     try {
-     const {filters} = value;
+
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.customer_id,
+        filters.payment_date.minValue || null,
+        filters.payment_date.maxValue || null,
+        filters.amount.minValue || null,
+        filters.amount.maxValue || null,
+        filters.description || null,
+        limit
+      ]
 
       let customerPayments = (
-        await queryDB(getPaymentsQuery, [
-          value.market_id,
-          filters[0]?.minValue || null, // Expected to be a date
-          filters[0]?.maxValue || null,   // Expected to be a date
-          filters[1]?.value || null,        // Expected to be a string
-          filters[2]?.value || null,     // Expected to be a string
-          filters[3]?.minValue || null,        // Expected to be a number
-          filters[3]?.maxValue|| null,        // Expected to be a number
-          filters[4]?.minValue || null,       // Expected to be a number
-          filters[4]?.maxValue || null        // Expected to be a number
-        ])
+        await queryDB(getPaymentsQuery, queryParams)
       ).rows;
 
       console.log("jkhk", customerPayments);

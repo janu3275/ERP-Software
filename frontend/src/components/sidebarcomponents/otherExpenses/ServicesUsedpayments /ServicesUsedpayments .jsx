@@ -411,7 +411,16 @@ const openForm = () => {
       <div className="infocomp">
   
      
-    <div style={{margin:0}} className="tabheading">Used service payments </div>
+    <div style={{margin:0}} className="tabheading"><Icon
+          icon="material-symbols:design-services-outline-rounded"
+          style={{
+            width: "3rem",
+            height: "3rem",
+            color: "rgb(60, 137, 255)",
+            cursor:"pointer"
+            
+            }}
+        />Used service payments </div>
 
       <div style={{position:"relative"}}>
          <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1 }}> 

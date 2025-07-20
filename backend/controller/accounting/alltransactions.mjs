@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { transactionQry } from "../../queries/transactionQueries.mjs";
+import { transactionFilteredQry, transactionFilteredSummaryQry } from "../../queries/transactionQueries.mjs";
 import { getFilesInDirectory } from "../../utils/commonFunction.mjs";
 import { asyncHandler } from "../../middleware/asynchandler.mjs";
 import { queryDB } from "../../db.mjs";
@@ -13,7 +13,10 @@ const transactionsApi = {
 
      const schema = Joi.object({
        market_id: Joi.number().integer().required(),
-       filters: Joi.array().required()
+       filters: Joi.object().required(),
+       nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+       previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+       limit: Joi.number().integer().default(10) // Page size
      });
     
      let body = { market_id, ...req.body };
@@ -32,24 +35,43 @@ const transactionsApi = {
          });
      }
 
+     const { previousCursor, nextCursor } = value
+
     // PROCEEDING TOWARDS FETCHING ALL PAYMENTS FOR EMIs
     
 
     try {
 
-        const { filters } = value;
+        const { filters, limit } = value;
 
-        const payments = (await queryDB(transactionQry, [
-            value.market_id,
-            filters[0]?.minValue || null, // Expected to be a date
-            filters[0]?.maxValue || null,   // Expected to be a date
-            filters[1]?.value || null,        // Expected to be a string
-            filters[2]?.value || null,     // Expected to be a string
-            filters[3]?.minValue || null,        // Expected to be a number
-            filters[3]?.maxValue|| null,        // Expected to be a number
-            filters[4]?.minValue || null,       // Expected to be a number
-            filters[4]?.maxValue || null        // Expected to be a number
-          ])).rows;
+        const queryParams = [
+          value.market_id,
+          filters.date.minValue || null,
+          filters.date.maxValue || null,
+          filters.category || null,
+          filters.description || null,
+          filters.debit.minValue || null,
+          filters.debit.maxValue || null,
+          filters.credit.minValue || null,
+          filters.credit.maxValue || null,
+          limit
+        ]
+
+        const summaryQueryParams = [
+          value.market_id,
+          filters.date.minValue || null,
+          filters.date.maxValue || null,
+          filters.category || null,
+          filters.description || null,
+          filters.debit.minValue || null,
+          filters.debit.maxValue || null,
+          filters.credit.minValue || null,
+          filters.credit.maxValue || null
+        ]
+
+      const payments = (await queryDB(transactionFilteredQry(previousCursor, nextCursor), queryParams)).rows;
+       
+      const summary = (await queryDB(transactionFilteredSummaryQry, summaryQueryParams)).rows[0]|| null;
 
       const fPayments = payments.map((payment) => {
 
@@ -61,17 +83,30 @@ const transactionsApi = {
       });
 
       if (fPayments.length > 0) {
+
+        const nextCursor = fPayments[fPayments.length - 1]?.row_num || null;
+        const previousCursor = fPayments[0]?.row_num || null;
+
         res.status(200).json({
           success: true,
           message: "All transactions retrieved successfully",
           data: convertData(fPayments),
+          summary: summary,
+          nextCursor: fPayments.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: fPayments.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
+
         res.status(200).json({
           success: true,
           message: "No Transactions found",
           data: [],
+          summary: null,
+          nextCursor: null, 
+          previousCursor: null
         });
+
       }
     } catch (error) {
       return res

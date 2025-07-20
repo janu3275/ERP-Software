@@ -17,7 +17,7 @@ const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [entertedSidebar, setenteredSidebar] = useState(false);
   const [openPage, setOpenPage] = useState({
-    dashboard: true,
+    dashboard: false,
     orderPage: false,
     ordersNotYetStartedPage: false,
     ordersInProcessPage: false,
@@ -48,7 +48,7 @@ const Home = () => {
     transactionPage: false,
     vendorAccountingPage: false,
     employeeManagementPage: false,
-    orderManagementPage: false,
+    orderManagementPage: true,
     catalogPage: false,
     customerManagementPage: false,
     otherExpensePage: false
@@ -96,7 +96,7 @@ const Home = () => {
         onMenuClick={handleMenuClick}
         openPage={openPage}
       />
-      <Notification />
+      {/* <Notification /> */}
       <div  className={sidebarOpen?"rightcomponent adjust":"rightcomponent"}>
         
       {openPage.dashboard && <Dashboard />}

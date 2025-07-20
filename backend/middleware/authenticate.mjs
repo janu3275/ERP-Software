@@ -61,7 +61,7 @@ const authUserToken = (req, res, next) => {
   }
 
   const authMarketToken = (req, res, next) => {
-    const markettoken = req.headers['marketauthtoken'].split(' ')[1];
+    const markettoken = req.headers['marketauthtoken']?.split(' ')[1] ?? null;
     
       if (!markettoken) {
         return res.status(401).json({ message: 'Unauthorized no market token found' });

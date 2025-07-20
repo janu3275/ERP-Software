@@ -6,7 +6,7 @@ import CatalogPanel from "./catalogPanel/catalogPanel";
 const Catalog = () => {
 
     const [selectedTab, setselectedTab] = useState({
-        customers:true, 
+        customers:false, 
         departments: false,
         positions: false,
         expenseServices: false,
@@ -20,7 +20,7 @@ const Catalog = () => {
         glassDilevery: false,
         glassFitting: false,
         glassMeasurement: false,
-        glassAccessory: false,
+        glassAccessory: true,
         glassInventory: false,
         glassProducts: false,
         otherProducts: false,

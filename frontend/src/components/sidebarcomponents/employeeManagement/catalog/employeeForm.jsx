@@ -9,6 +9,7 @@ import Labelwithtextarea from "../../../../assets/formcomponents/textarea.jsx";
 import SingleSelectDemo from "../../../../assets/formcomponents/select.jsx";
 import { bankItems } from "../../orders/allOrders/staticOptions.jsx";
 import ProfileImageUpload from "../../../../assets/formcomponents/singleImageUpload/profileImageUpload.jsx";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 const Employeeform = ({
   createNewEmployee,
@@ -124,7 +125,16 @@ const Employeeform = ({
     >
       
     <div style={{ gap: "20px", flexDirection: "column", display: "flex", marginBottom:"150px" , padding:"0px 100px"}}>
-     <div className="formtitle">{selectedEmployee?"Update employee":"Add employee"}</div>
+     <div className="formtitle"><Icon
+  icon="akar-icons:person"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(60, 137, 255)",
+    cursor:"pointer"
+    
+    }}
+/>{selectedEmployee?"Update employee":"Add employee"}</div>
       <div className="primaryformsection">
         <div className="primaryformsectiontitle">Personal details</div>
         <div className="primaryformsectioncontent">
@@ -165,7 +175,7 @@ const Employeeform = ({
           textfieldclassname="primarytextfieldclass"
           divclassname="primarytextdivclass"
           defaultValue=""
-          label=""
+          label="First name"
           direction="row"
           type="text"
           placeholder="Employee name"
@@ -178,7 +188,7 @@ const Employeeform = ({
           textfieldclassname="primarytextfieldclass"
           divclassname="primarytextdivclass"
           defaultValue=""
-          label=""
+          label="Last name"
           direction="row"
           type="text"
           placeholder="Employee name"
@@ -277,7 +287,25 @@ const Employeeform = ({
           placeholder="Extra information"
         />
         </div>
-
+        </div>
+        </div>
+        
+        <div className="primaryformsection">
+        <div className="primaryformsectiontitle">Address details</div>
+        <div className="primaryformsectioncontent">
+        <Labelwithtextarea
+          register={register}
+          errors={errors}
+          name="address"
+          labelclassname="formlabel"
+          textfieldclassname="primarytextareaclass"
+          divclassname="primarytextdivclass"
+          defaultValue=""
+          label="Address"
+          direction="row"
+          type="text"
+          placeholder="Address"
+        />
        <div style={{display:"flex", gap:"20px"}}>
         <Labelwithtextfield
           register={register}
@@ -333,22 +361,10 @@ const Employeeform = ({
           placeholder="Extra information"
         />
         </div>
-
-        <Labelwithtextarea
-          register={register}
-          errors={errors}
-          name="address"
-          labelclassname="formlabel"
-          textfieldclassname="primarytextareaclass"
-          divclassname="primarytextdivclass"
-          defaultValue=""
-          label="Address"
-          direction="row"
-          type="text"
-          placeholder="Address"
-        />
-       </div>
         </div>
+        </div>
+       
+       
         <div className="primaryformsection">
         <div className="primaryformsectiontitle">Office details</div>
         <div className="primaryformsectioncontent">

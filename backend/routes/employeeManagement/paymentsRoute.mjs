@@ -13,7 +13,7 @@ const router = express.Router()
 
 
 
-router.get("/getall/:employee_id",authCompanyToken, authMarketToken, authUserToken, paymentHistoryApi.getAllPaymentsByEmployee);
+router.post("/getall/:employee_id",authCompanyToken, authMarketToken, authUserToken, paymentHistoryApi.getAllPaymentsByEmployee);
 router.get("/getallemployeepayments",authCompanyToken, authMarketToken, authUserToken, paymentHistoryApi.getAllEmployeePayments);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken, paymentHistoryApi.addEmployeePayment);
 router.post("/update", authCompanyToken, authMarketToken , authUserToken, paymentHistoryApi.updatePayment);

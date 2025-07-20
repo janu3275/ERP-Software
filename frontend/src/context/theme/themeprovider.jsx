@@ -4,7 +4,7 @@ import ThemeContext from './themecontext';
 
 
 
-const ThemeProvider = ({children})=>{
+const ThemeProvider = ({children}) => {
 const [theme, settheme] = useState('light');
 
 const toggleTheme = ()=>{

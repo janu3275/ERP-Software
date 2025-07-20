@@ -13,7 +13,7 @@ const router = express.Router()
 
 
 
-router.get("/getall",authCompanyToken, authMarketToken , authUserToken, vendorBillsApi.getVendorBillsByVendorId);
+router.post("/getall",authCompanyToken, authMarketToken , authUserToken, vendorBillsApi.getVendorBillsByVendorId);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken, vendorBillsApi.addBillByVendorId);
 router.post("/update", authCompanyToken, authMarketToken , authUserToken, vendorBillsApi.updateVendorBill);
 router.delete("/delete", authCompanyToken, authMarketToken , authUserToken,  vendorBillsApi.deleteVendorBill);

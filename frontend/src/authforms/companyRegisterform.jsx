@@ -3,7 +3,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 import PropTypes from "prop-types";
-import Labelwithtextfield from '../assets/formcomponents/textfield';
+import LabelwithPasswordfield from '../assets/formcomponents/passwordField';
+import Labelwithtextfieldlarge from '../assets/formcomponents/labelwithtextfieldlarge';
 
 
 
@@ -11,71 +12,94 @@ import Labelwithtextfield from '../assets/formcomponents/textfield';
 
 const CompanyRegisterform = ({registerCompany}) => {
 
-    const schema = yup.object().shape({
-        companyName: yup.string().required('Company name is required'),
-        gstNumber: yup.string().test('is-valid-gst', 'Invalid GST number', (value) => {
-          // GST number regex pattern
-          const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-          
-          // Check if the value matches the pattern
-          return gstPattern.test(value);
-        }).required('GST number is required'),
-      });
+  const schema = yup.object().shape({
+    companyID: yup.string()
+      .required('Company ID is required')
+      .min(6, 'Company ID must be at least 6 characters long')
+      .max(50, 'Company ID name must be at most 50 characters long')
+      .matches(/^[a-zA-Z0-9]*$/, 'Company ID can only contain alphanumeric characters and no spaces'),
+    Password: yup.string()
+      .min(8, 'Password must be at least 8 characters long')
+      .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .matches(/[0-9]/, 'Password must contain at least one number')
+      .matches(/[@$!%*?&]/, 'Password must contain at least one special character')
+      .matches(/^\S*$/, 'Password cannot contain spaces')
+      .required('Password is required')
+ 
+  });
 
-  const { register, handleSubmit, formState, control } = useForm({
+  
+
+  const { register, handleSubmit, formState, control, getValues, watch } = useForm({
     resolver: yupResolver(schema),
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-        companyName:"",
-        gstNumber:""
-    },
+        companyID:"",
+        Password:""
+   
+    }
+
   });
 
   const { isSubmitting, isDirty, isValid, errors } = formState;
 
+  const password = watch('Password');
+
+
+
+  const rules = [
+    {rule:'Must be at least 8 characters long', validation: password.length >= 8}, 
+    {rule:'Must contain a lowercase letter, an uppercase letter, a number, and a special character', validation: /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[@$!%*?&]/.test(password)},
+    {rule: 'Cannot contain spaces', validation: !/\s/.test(password)}
+  ]
  
 
 
   return (
     
     <form onSubmit={handleSubmit(data=>registerCompany(data))}>
-      <div style={{marginTop:"100px",  flexDirection: "column", display: "flex" }}>
+      <div style={{marginTop:"20px",  flexDirection: "column", display: "flex", gap:"20px"
+       }}>
 
-          <Labelwithtextfield
+          <Labelwithtextfieldlarge
             register={register}
             errors={errors}
-            name="companyName"
+            name="companyID"
             labelclassname="custformlabel"
             textfieldclassname="logintextfield"
             divclassname="vertical"
             defaultValue=""
-            label="Company Name"
+            label="Company ID"
             direction="row"
             type="text"
-            placeholder="Name of the company"
-          />
-
-
-                
-
-           <Labelwithtextfield
-            register={register}
-            errors={errors}
-            name="gstNumber"
-            labelclassname="custformlabel"
-            textfieldclassname="logintextfield"
-            divclassname="vertical"
-            defaultValue=""
-            label="GST Number"
-            direction="row"
-            type="text"
-            placeholder="GST number of your company"
+            placeholder="eg. kailash_Shop"
+            
           />
           
+          <LabelwithPasswordfield
+            register={register}
+            errors={errors}
+            name="Password"
+            labelclassname="custformlabel"
+            textfieldclassname="logintextfield"
+            divclassname="vertical"
+            defaultValue=""
+            label="Password"
+            direction="row"
+            type="password"
+            placeholder=""
+            rules={rules}
+            empty={getValues('Password').length===0}
+
+          />
+
+     
+          
        </div>
-        <div style={{display:"flex",  marginTop:"10px"}}>
-      <button style={{marginTop:"10px"}} className='oksecondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
+        <div style={{display:"flex",  marginTop:"20px"}}>
+      <button style={{marginTop:"10px", width:"-webkit-fill-available", height:"22px", borderRadius:"4px"}} className='secondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
         Register company
       </button>
       </div>

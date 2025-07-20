@@ -4,78 +4,78 @@ import * as yup from 'yup';
 
 import "./companyloginform.css";
 import PropTypes from "prop-types";
-import Labelwithtextfield from '../../assets/formcomponents/textfield';
+import Labelwithtextfieldlarge from '../../assets/formcomponents/labelwithtextfieldlarge';
+import LabelwithPasswordfield from '../../assets/formcomponents/passwordField';
 
 
 
 
 
-const CompanyLoginform = ({loginCompany}) => {
+const CompanyLoginform = ({ loginCompany }) => {
 
-    const schema = yup.object().shape({
-        companyName: yup.string().required('Company name is required'),
-        gstNumber: yup.string().test('is-valid-gst', 'Invalid GST number', (value) => {
-          // GST number regex pattern
-          const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-          
-          // Check if the value matches the pattern
-          return gstPattern.test(value);
-        }).required('GST number is required'),
-      });
+  const schema = yup.object().shape({
+
+    companyID: yup.string().required('Company ID is required'),
+    Password: yup.string().required('Password is required')
+ 
+  });
 
   const { register, handleSubmit, formState } = useForm({
     resolver: yupResolver(schema),
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-        companyName:"",
-        gstNumber:""
-    },
+        companyID:"",
+        Password:""
+    }
+
   });
 
   const { isSubmitting, isDirty, isValid, errors } = formState;
 
+  const rules = []
  
 
   return (
     
     <form onSubmit={handleSubmit(data=>loginCompany(data))}>
-       <div style={{marginTop:"100px",  flexDirection: "column", display: "flex" }}>
+       <div style={{marginTop:"20px",  flexDirection: "column", display: "flex", gap:"20px" }}>
 
-          <Labelwithtextfield
+          <Labelwithtextfieldlarge
             register={register}
             errors={errors}
-            name="companyName"
+            name="companyID"
             labelclassname="custformlabel"
             textfieldclassname="logintextfield"
             divclassname="vertical"
             defaultValue=""
-            label="Company Name"
+            label="Company ID"
             direction="row"
             type="text"
-            placeholder="Name of the company"
+            placeholder="eg. kailash_Shop"
+
           />
-
-
-                
-
-           <Labelwithtextfield
+          
+          <LabelwithPasswordfield
             register={register}
             errors={errors}
-            name="gstNumber"
+            name="Password"
             labelclassname="custformlabel"
             textfieldclassname="logintextfield"
             divclassname="vertical"
             defaultValue=""
-            label="GST Number"
+            label="Password"
             direction="row"
-            type="text"
-            placeholder="GST number of your company"
+            type="password"
+            placeholder=""
+            rules={rules}
+            empty={false}
+
           />
           
        </div>
-        <div style={{display:"flex",  marginTop:"10px"}}>
-      <button style={{marginTop:"10px"}} className='oksecondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
+        <div style={{display:"flex",  marginTop:"20px"}}>
+      <button style={{marginTop:"10px", width:"-webkit-fill-available", height:"22px", borderRadius:"4px"}} className='secondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
        Company login
       </button>
       </div>
@@ -85,7 +85,7 @@ const CompanyLoginform = ({loginCompany}) => {
 
 
 CompanyLoginform.propTypes = {
-loginCompany: PropTypes.func.isRequired,
+loginCompany: PropTypes.func.isRequired
 };
 
 

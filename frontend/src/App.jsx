@@ -17,18 +17,21 @@ import UserAuthWrapper from './wrapper/userRoutesWrapper';
 import MarketAuthWrapper from './wrapper/MarketRoutesWrapper';
 import CompanyRoutesWrapper from './wrapper/companyRoutesWrapper';
 import withBlurOnClick from './wrapper/BlurButtonWrapper';
+import Notification from './components/globalcomponents/notification';
+
 
 
 function App() {
 
-  const {theme} = useContext(ThemeContext);
-
+  const { theme } = useContext(ThemeContext);
+  
  
+
 
  
   return (
   <div className = {theme==='light'? "app light":"app dark"} >
-  
+  <Notification />
     <Routes>
 
      <Route  element={ <CompanyRoutesWrapper /> } >
@@ -45,9 +48,9 @@ function App() {
       <Route path="/userLogin" element={ <UserLogin /> } />
      </Route>
 
-    <Route element={<MainRoutesWrapper />} >
+    <Route element={ <MainRoutesWrapper /> } >
      <Route path="/home" element={ <Home/> } />
-     <Route path="*" element={<Navigate to="/home"/>  } />
+     <Route path="*" element={<Navigate to="/home"/>} />
     </Route>
     
    </Routes>

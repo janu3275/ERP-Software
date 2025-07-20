@@ -7,16 +7,22 @@ import { deleteDirectory, generateRandomId, getFilesInDirectory, saveFilesToLoca
 const vendorBillsApi = {
     
     getVendorBillsByVendorId : asyncHandler(async (req, res, next) => {
-        const {vendorId, product_type} = req.query;
+       
     
         const schema = Joi.object({
             vendorId: Joi.number().integer().required(),
             product_type: Joi.string()
             .valid('glass products', 'glass accessories', 'other products')
-            .required()
+            .required(),
+            filters: Joi.object().required(),
+            nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            limit: Joi.number().integer().default(10) // Page size
         });
+
+        let body = { ...req.query, ...req.body };
     
-        const { error, value } = schema.validate({ vendorId , product_type});
+        const { error, value } = schema.validate(body);
     
         if (error) {
             console.log(error.details);
@@ -26,72 +32,132 @@ const vendorBillsApi = {
                 error: error.details,
             });
         }
+
+        const { previousCursor, nextCursor } = value
     
         const getVendorBillsQuery = `
+        
+  SELECT
+    vb.id,
+    vb.bill_date,
+    vb.bill_number,
+    vb.attachment_path,
+    vb.bill_amount,
+    vb.note,
+    vb.create_time,
+    vb.vendor_id,
+    v.vendor_name,
+    v.product_type,
+    CASE
+      WHEN v.product_type = 'glass products' THEN (
         SELECT
-        vb.id,
-        vb.bill_date,
-        vb.bill_number,
-        vb.attachment_path,
-        vb.bill_amount,
-        vb.note,
-        vb.create_time,
-        vb.vendor_id,
-        v.vendor_name,
-        v.product_type,
-        CASE
-          WHEN v.product_type = 'glass products' THEN (
-            SELECT
-              json_agg(
-                json_build_object(
-                  'glass_inventory_id', glass_inventory_id,
-                  'quantity', quantity
-                )
-              )
-            FROM
-              vendor_bill_glsitems vbgi
-            WHERE
-              vbgi.vendor_bill_id = vb.id
+          json_agg(
+            json_build_object(
+              'glass_inventory_id', glass_inventory_id,
+              'quantity', quantity
+            )
           )
-          WHEN v.product_type = 'glass accessories' THEN (
-            SELECT
-              json_agg(
-                json_build_object(
-                  'glass_accessory_id', glass_accessory_id,
-                  'quantity', quantity
-                )
-              )
-            FROM
-              vendor_bill_gls_accessories vbga
-            WHERE
-              vbga.vendor_bill_id = vb.id
+        FROM
+          vendor_bill_glsitems vbgi
+        WHERE
+          vbgi.vendor_bill_id = vb.id
+      )
+      WHEN v.product_type = 'glass accessories' THEN (
+        SELECT
+          json_agg(
+            json_build_object(
+              'glass_accessory_id', glass_accessory_id,
+              'quantity', quantity
+            )
           )
-          WHEN v.product_type = 'other products' THEN (
-            SELECT
-              json_agg(
-                json_build_object(
-                  'other_products_id', other_products_id,
-                  'quantity', quantity
-                )
-              )
-            FROM
-              vendor_bill_otheritems vboi
-            WHERE
-              vboi.vendor_bill_id = vb.id
+        FROM
+          vendor_bill_gls_accessories vbga
+        WHERE
+          vbga.vendor_bill_id = vb.id
+      )
+      WHEN v.product_type = 'other products' THEN (
+        SELECT
+          json_agg(
+            json_build_object(
+              'other_products_id', other_products_id,
+              'quantity', quantity
+            )
           )
-          ELSE NULL
-        END AS items 
-      FROM
-        vendor_bills vb
-        LEFT JOIN vendors v ON vb.vendor_id = v.id
-      WHERE
-        vb.vendor_id = $1 ;`;
+        FROM
+          vendor_bill_otheritems vboi
+        WHERE
+          vboi.vendor_bill_id = vb.id
+      )
+      ELSE NULL
+    END AS items
+  FROM
+    vendor_bills vb
+    LEFT JOIN vendors v ON vb.vendor_id = v.id
+  WHERE
+    vb.vendor_id = $1
+    AND ($2::text IS NULL OR vb.bill_number ILIKE '%' || $2::text || '%')
+    AND ($3::date IS NULL OR vb.bill_date >= $3::date)
+    AND ($4::date IS NULL OR vb.bill_date <= $4::date)
+    AND ($5::numeric IS NULL OR vb.bill_amount >= $5::numeric)
+    AND ($6::numeric IS NULL OR vb.bill_amount <= $6::numeric)
+    AND ($7::text IS NULL OR vb.note ILIKE '%' || $7::text || '%')
+    AND ($8::boolean IS NULL OR (
+      CASE
+        WHEN v.product_type = 'glass products' THEN (
+          SELECT
+            COUNT(*) > 0
+          FROM
+            vendor_bill_glsitems
+          WHERE
+            vendor_bill_id = vb.id
+        )
+        WHEN v.product_type = 'glass accessories' THEN (
+          SELECT
+            COUNT(*) > 0
+          FROM
+            vendor_bill_gls_accessories
+          WHERE
+            vendor_bill_id = vb.id
+        )
+        WHEN v.product_type = 'other products' THEN (
+          SELECT
+            COUNT(*) > 0
+          FROM
+            vendor_bill_otheritems
+          WHERE
+            vendor_bill_id = vb.id
+        )
+        ELSE FALSE
+      END = $8::boolean
+    ))
+    ${nextCursor ? `AND id > ${nextCursor}` : ''}
+    ${previousCursor ? `AND id < ${previousCursor}` : ''}
+    ORDER BY
+       vb.id ASC
+    LIMIT
+     $9;`;
             
     
         try {
 
+            const { filters, limit } = value;
+
+
+            const queryParams = [
+              value.vendorId,
+              filters.bill_number || null,
+              filters.bill_date.minValue || null,
+              filters.bill_date.maxValue || null,
+              filters.bill_amount.minValue || null,
+              filters.bill_amount.maxValue || null,
+              filters.note || null,
+              filters.inventory_added,
+              limit
+            ]
+
+
             let vendorBills = (
-                await queryDB(getVendorBillsQuery, [value.vendorId])
+                await queryDB(getVendorBillsQuery, queryParams)
             ).rows;
 
              vendorBills = vendorBills.map((bill) => {
@@ -103,18 +169,30 @@ const vendorBillsApi = {
              })
     
             if (vendorBills) {
+                console.log("kjh", vendorBills)
+                const nextCursor = vendorBills[vendorBills.length - 1]?.id || null;
+                const previousCursor = vendorBills[0]?.id || null;
+
                 res.status(200).json({
                     success: true,
                     message: "Vendor bills retrieved successfully",
                     data: vendorBills,
+                    nextCursor: vendorBills.length === limit ? nextCursor : null, // Indicate if there are more results
+                    previousCursor: vendorBills.length === limit ? previousCursor : null, // Indicate if there are previous results
                 });
+
             } else {
+
                 res.status(404).json({
                     success: false,
                     message: "No vendor bills found",
                     data: [],
+                    nextCursor: null, 
+                    previousCursor: null
                 });
+
             }
+
         } catch (error) {
             return res.status(500).json({
                 success: false,

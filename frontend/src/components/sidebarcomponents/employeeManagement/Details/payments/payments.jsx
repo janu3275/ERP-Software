@@ -1,70 +1,168 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import StackedImages from "../../../../../assets/singlecomponents/stackedimages/stackedimages";
-import { Axios } from "../../../../../../utils/axios.mjs";
 import DialogDemo from "../../../../../assets/singlecomponents/dialog/dialog";
 import Table from "../../../../commoncomponents/tableComponent/table";
 import { calculatePaid, formatpaidOptionInfo, returnConvertedDate, returnPaymentTableIcon } from "../../../../../commonfn";
 import print from 'print-js'
 import "./payments.css";
 import EmployeePaymentform from "./paymentsform";
+import { useFilterStore } from "../../../../../../strore/notificationStore";
+import { useQueryClient } from "@tanstack/react-query";
+import debounce from "lodash.debounce";
+import { returnEmployeeStringifiedFilter } from "../../employeeFilterFunctions";
+import { useAddEmployeePayment, useDeleteEmployeePayment, useGetEmployeePayments, useUpdateEmployeePayment } from "./employeePaymentQueryhooks";
 
-const EmployeePayments = ({employeeId}) => { 
+const EmployeePayments = ({ employeeId }) => { 
 
+    const storeFilterData = useFilterStore(state => state[`EmployeePayments${employeeId}`]);
     const [openEmployeePaymentsForm, setOpenPaymentsForm] = useState(false);
-    const [allEmployeePaymentsinfo, setEmployeePaymentsinfo] = useState([]);
-    const [tableData, settableData] = useState(null);
     const [selectedemployeePayment, setselectedemployeePayment] = useState(null);
+    const employeePaymentTableRef = useRef(null);
+    const queryClient = useQueryClient();
+
+    const tablesummary = [
+        {option:{via:"Cash"}, key:"total_cash"}, 
+        {option:{via:"UPI"}, key:"total_upi"}, 
+        {option:{via:"Cheque"}, key:"total_cheque"}, 
+        {option:{via:"Other"}, key:"total_other"}
+      ]
+
+    const returnTableData = (data) => {
+
+      console.log("🚀 ~ returnTableData ~ data:", data)
+
+      if(!data){
+        return null
+      }
+
+      const EmployeePaymentsarr = formatData(data)
+      const tableobj = convertDataForTable(EmployeePaymentsarr);
+      return { ...tableobj };
+     
+    }
+
+    const addEmployeePaymentSuccessfn = () => {    
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`employeePayments-${employeeId}`, returnEmployeeStringifiedFilter(storeFilterData, 'EmployeePayments')], exact: true });
+      // Close the vendor form
+      setOpenPaymentsForm(false)
+
+    }
+
+    const updateEmployeePaymentSuccessfn = () => {
+       // Invalidate or refetch the vendor list query
+       queryClient.invalidateQueries({ queryKey:[`employeePayments-${employeeId}`, returnEmployeeStringifiedFilter(storeFilterData, 'EmployeePayments')], exact: true });
+       setselectedemployeePayment(null)
+       // Close the vendor form
+       setOpenPaymentsForm(false);
+
+    }
+
+    const deleteEmployeePaymentSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey:[`employeePayments-${employeeId}`, returnEmployeeStringifiedFilter(storeFilterData, 'EmployeePayments')], exact: true });
+    }
+
+    const { data , error: getEmployeePaymenterr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getEmployeePaymentIsLoading } = useGetEmployeePayments( employeeId, null, returnEmployeeStringifiedFilter(storeFilterData, 'EmployeePayments'));
+
+    const allEmployeePaymentsinfo = (data?.pages ?? []).flatMap(page => page?.data ?? []);
+    const summary = (data?.pages[0]?.summary ?? [])
+
+    const { mutate: triggerCreateEmployeePayment , error: addEmployeePaymenterr, isLoading: addEmployeePaymentIsLoading } = useAddEmployeePayment(addEmployeePaymentSuccessfn);
+
+    const { mutate: triggerUpdateEmployeePayment , error: updateEmployeePaymenterr, isLoading: updateEmployeePaymentIsLoading } = useUpdateEmployeePayment(updateEmployeePaymentSuccessfn);
+
+    const { mutate: triggerDeleteEmployeePayment , error: deleteEmployeePaymenterr, isLoading: deleteEmployeePaymentIsLoading } = useDeleteEmployeePayment(deleteEmployeePaymentSuccessfn);
 
     
-    const createNewPayment = async (data) => {
+    // const createNewPayment = async (data) => {
 
-     try {
+    //  try {
 
-        let body = {
-          ...data,
-          employee_id: employeeId,
-          paidOptionInfo: data.paidOptionInfo
-          .map((option) => {
-            return {
-              via: option.via,
-              checked: true,
-              amount: parseFloat(option.amount),
-            };
-          })
+    //     let body = {
+    //       ...data,
+    //       employee_id: employeeId,
+    //       paidOptionInfo: data.paidOptionInfo
+    //       .map((option) => {
+    //         return {
+    //           via: option.via,
+    //           checked: true,
+    //           amount: parseFloat(option.amount),
+    //         };
+    //       })
+    //     }
+
+    //     let res = await Axios.post(`/employeePayment/add`, body)
+
+    //     if(res.data.success){
+    //       getEmployeePayments()
+    //       setOpenPaymentsForm(false)
+    //     }
+
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+
+    // }
+
+// const getEmployeePayments = async() => {
+//       try {
+
+//         let res = await Axios.get(`/employeePayment/getall/${employeeId}`)
+//         if(res.data.success){
+//           console.log(res.data.data)
+//           let EmployeePaymentsarr = [...res.data.data]
+//           EmployeePaymentsarr = formatData(EmployeePaymentsarr)
+//           setEmployeePaymentsinfo(EmployeePaymentsarr)
+//           let tableobj = convertDataForTable(EmployeePaymentsarr);
+//           settableData(tableobj)
+//         }
+//       } catch (error) {
+//         console.log(error)
+//       }
+
+//     }
+
+
+      // Infinite scroll event handler for loading next page
+      const loadNextPage = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
-
-        let res = await Axios.post(`/employeePayment/add`, body)
-
-        if(res.data.success){
-          getEmployeePayments()
-          setOpenPaymentsForm(false)
+      };
+    
+      // Infinite scroll event handler for loading previous page
+      // const loadPreviousPage = () => {
+      //   if (hasPreviousPage && !isFetchingPreviousPage) {
+      //     fetchPreviousPage();
+      //   }
+      // };
+    
+    
+       // Attach scroll event for loading next or previous page on table scroll
+       useEffect(() => {
+        const onScroll = debounce(() => {
+          const table = employeePaymentTableRef.current;
+          if (table) {
+            const { scrollTop, clientHeight, scrollHeight } = table;
+            // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+            //   loadPreviousPage();
+            // } else
+              console.log(scrollTop, clientHeight, scrollHeight)
+             if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+              loadNextPage();
+            }
+          }
+        }, 200);
+    
+        const table = employeePaymentTableRef.current;
+        if (table) {
+          table.addEventListener('scroll', onScroll);
+          return () => table.removeEventListener('scroll', onScroll);
         }
-
-      } catch (error) {
-        console.log(error)
-      }
-
-    }
-
-const getEmployeePayments = async() => {
-      try {
-
-        let res = await Axios.get(`/employeePayment/getall/${employeeId}`)
-        if(res.data.success){
-          console.log(res.data.data)
-          let EmployeePaymentsarr = [...res.data.data]
-          EmployeePaymentsarr = formatData(EmployeePaymentsarr)
-          setEmployeePaymentsinfo(EmployeePaymentsarr)
-          let tableobj = convertDataForTable(EmployeePaymentsarr);
-          settableData(tableobj)
-        }
-      } catch (error) {
-        console.log(error)
-      }
-
-    }
+      }, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
 
 const formatData = (paymentarr) => {
 
@@ -110,7 +208,7 @@ const convertDataForTable = (data) => {
         "columnName": "via",
         "type": "attachment/link",
         "colNo": 4,
-        "width": 100,
+        "width": 500,
         "sorted":null
       },
        { 
@@ -137,7 +235,7 @@ const convertDataForTable = (data) => {
             row.push({ key:'amount', value: calculatePaid(obj.paidOptionInfo), type:'number', width:100, rowNo:index+1, colNo:3, id:obj.id })
          }
          if(obj.paidOptionInfo){
-          row.push({ key:'via', value: <div style={{display:"flex", gap:"15px"}}>{returnViaComp(obj.paidOptionInfo)}</div>, type:'attachment/link', width:400, rowNo:index+1, colNo:4, id:obj.id })
+          row.push({ key:'via', value: <div style={{display:"flex", gap:"15px"}}>{returnViaComp(obj.paidOptionInfo)}</div>, type:'attachment/link', width:500, rowNo:index+1, colNo:4, id:obj.id })
          }
          if(obj.description || obj.description===''){
             row.push({ key:'description', value: obj.description, type:'string', width:100, rowNo:index+1, colNo:5, id:obj.id })
@@ -150,7 +248,7 @@ const convertDataForTable = (data) => {
 
     })
 
-const rowWiseFunctions = [{funcName:'Edit', funct:(employeePayment)=>PaymentsFormOpen(employeePayment, EmployeePaymentsarr) , icon: <Icon
+const rowWiseFunctions = [{funcName:'Update', funct:(employeePayment)=>PaymentsFormOpen(employeePayment, EmployeePaymentsarr) , icon: <Icon
     icon="mynaui:edit-one"
     style={{
       width: "1.1rem",
@@ -167,7 +265,7 @@ const rowWiseFunctions = [{funcName:'Edit', funct:(employeePayment)=>PaymentsFor
      color: "rgb(82, 78, 70)",
      cursor: "pointer",
     }}
-    />}, {funcName:'Delete', funct:(employeePayment)=>DeleteEmployeePayment(employeePayment, EmployeePaymentsarr), icon: <Icon
+    />}, {funcName:'Delete', funct:(employeePayment)=>triggerDeleteEmployeePayment(employeePayment, EmployeePaymentsarr), icon: <Icon
      icon="mi:delete-alt"
      style={{
      width: "1.1rem",
@@ -190,9 +288,17 @@ cursor: "pointer",
 
 
 
-const name = 'EmployeePayments'
+const name = `EmployeePayments${employeeId}`
 
-const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows}
+const tableRef = employeePaymentTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+
+const serverSideFiltering = true;
+
+const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows, tableRef, tableContainerStyle , serverSideFiltering}
 console.log(tableData)
 return tableData
 
@@ -210,11 +316,15 @@ return tableData
         .filter((option) => option.checked)
         .map((option, index) => (
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-            }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            padding:"2px 5px", 
+            borderRadius:"4px", 
+            background:"#fff4e5",
+            height:"fit-content"
+          }}
             key={index}
           >
             {returnPaymentTableIcon(option)}-<div>Rs. {option.amount}</div>
@@ -248,7 +358,7 @@ return tableData
 
     }
 
-    const printMultiplePayments = (employeePayments, EmployeePaymentsarr) => {
+    const printMultiplePayments = ( employeePayments, EmployeePaymentsarr ) => {
      console.log(employeePayments)
     
       let totalimageSrcArr = []
@@ -278,56 +388,56 @@ return tableData
 
 
 
-const DeleteEmployeePayment = async(employeePayment, EmployeePaymentsarr) => {
-      try {
-        const selctedEmployeePaymentsRow = EmployeePaymentsarr.filter((row)=>row.id===employeePayment[0].id)[0] || null
-        if(!selctedEmployeePaymentsRow){
-          console.log(selctedEmployeePaymentsRow)
-          return 
-        }
-        let res = await Axios.delete(`/employeePayment/delete?payment_id=${selctedEmployeePaymentsRow.id}`)
-        if(res.data.success){
-          getEmployeePayments()
+// const DeleteEmployeePayment = async(employeePayment, EmployeePaymentsarr) => {
+//       try {
+//         const selctedEmployeePaymentsRow = EmployeePaymentsarr.filter((row)=>row.id===employeePayment[0].id)[0] || null
+//         if(!selctedEmployeePaymentsRow){
+//           console.log(selctedEmployeePaymentsRow)
+//           return 
+//         }
+//         let res = await Axios.delete(`/employeePayment/delete?payment_id=${selctedEmployeePaymentsRow.id}`)
+//         if(res.data.success){
+//           getEmployeePayments()
           
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
+//         }
+//       } catch (error) {
+//         console.log(error)
+//       }
+//     }
    
 
-const UpdateemployeePayment = async(data) => {
-      console.log(data)
-      try {
-        let body = {
-          ...data.data,
-            payment_id: `${data.Paymentid}`, 
-            paidOptionInfo: data.data.paidOptionInfo
-           .map((option) => {
-              return {
-                via: option.via,
-                checked: true,
-                amount: parseFloat(option.amount),
-              };
-            }),
+// const UpdateemployeePayment = async(data) => {
+//       console.log(data)
+//       try {
+//         let body = {
+//           ...data.data,
+//             payment_id: `${data.Paymentid}`, 
+//             paidOptionInfo: data.data.paidOptionInfo
+//            .map((option) => {
+//               return {
+//                 via: option.via,
+//                 checked: true,
+//                 amount: parseFloat(option.amount),
+//               };
+//             }),
           
-        }
+//         }
 
-        let res = await Axios.post( `/employeePayment/update`, body )
-        if(res.data.success){
-          getEmployeePayments()
-          setselectedemployeePayment(null)
-          setOpenPaymentsForm(false)
-        }
+//         let res = await Axios.post( `/employeePayment/update`, body )
+//         if(res.data.success){
+//           getEmployeePayments()
+//           setselectedemployeePayment(null)
+//           setOpenPaymentsForm(false)
+//         }
 
-      } catch (error) {
-        console.log(error)
-      }
-    }
+//       } catch (error) {
+//         console.log(error)
+//       }
+//     }
 
 const PaymentsFormOpen = ( EmployeePayments, EmployeePaymentsarr ) => {
 
-      console.log(EmployeePayments, EmployeePaymentsarr, tableData)
+      console.log(EmployeePayments, EmployeePaymentsarr)
       const selctedEmployeePayment = EmployeePaymentsarr.filter((row)=>row.id===EmployeePayments[0].id)[0] || null
       console.log(selctedEmployeePayment)
       setselectedemployeePayment(selctedEmployeePayment)
@@ -340,23 +450,65 @@ const openForm = () => {
       setOpenPaymentsForm(true)
     }
 
-    useEffect(() => {
-      getEmployeePayments()
-    },[employeeId])
+const returnTotalPaid = (payments)=>{
+  let count = 0
+  payments.forEach((obj)=>{
+  count = count + parseFloat(summary[obj.key])
+})
+
+return count
+}    
+
+    // useEffect(() => {
+    //   getEmployeePayments()
+    // },[employeeId])
 
     console.log(allEmployeePaymentsinfo)
     return (
-
-      <div style={{position:"relative"}}>
+<>
+<div className="tablesummary">
+     
+        <div className="tablesummarytab">
+        <div className="tablesummarytopic" style={{ background:"rgb(219 237 219 / 22%)"}}>   <Icon
+    icon="tabler:cash"
+    style={{
+    width: "1.2rem",
+    height: "1.2rem",
+    color: "rgb(30, 197, 2)",
+    cursor: "pointer",
+   }} /> Paid ( Total ) </div>
+      <div className="tablesummaryinfo">
+      {tablesummary.map((obj, index)=> <div
+       key={index}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "5px",
+          padding:"2px 5px", 
+          borderRadius:"4px", 
+          background:"#fff4e5",
+          height:"fit-content",
+          minWidth:"140px"
+        }}
+       
+      >
+        {returnPaymentTableIcon(obj.option)}-<div>Rs. {summary[obj.key]}</div>
+      </div>)}
+    
+      </div>
+      <div style={{display:"flex", justifyContent:"center", alignItems:"center", padding:"5px 5px", borderTop:"1px solid rgb(233, 233, 231)"}}>Total : Rs. {returnTotalPaid(tablesummary)}</div>
+      </div>
+      </div>  
+      {allEmployeePaymentsinfo && <div style={{position:"relative"}}>
          <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1 }}> 
 
         <DialogDemo Open={openEmployeePaymentsForm} setOpen={(e)=> e?openForm():setOpenPaymentsForm(e) } buttontext="+ Add Payment"  contentclass="dailogcontentclass" btnclass = 'primarybtndiv'> 
          {(props) => (
               <EmployeePaymentform
                 {...props}
-                createNewEmployeePayment={createNewPayment}
+                createNewEmployeePayment={(data)=>triggerCreateEmployeePayment({data, employeeId})}
                 selectedEmployeePayment={selectedemployeePayment}
-                UpdateEmployeePayment={UpdateemployeePayment}
+                UpdateEmployeePayment={triggerUpdateEmployeePayment}
               />
             )}
          </DialogDemo>
@@ -364,9 +516,10 @@ const openForm = () => {
         </div>
 
          
-       { tableData && <Table  data={tableData} /> }
+        <Table  data={returnTableData(allEmployeePaymentsinfo)} /> 
 
-      </div>
+      </div>}
+  </>
     )
 }
 

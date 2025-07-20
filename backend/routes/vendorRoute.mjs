@@ -17,5 +17,6 @@ router.post("/add", authCompanyToken, authMarketToken , authUserToken, vendorApi
 router.post("/update", authCompanyToken, authMarketToken , authUserToken, vendorApi.updateVendor);
 router.delete("/delete", authCompanyToken, authMarketToken , authUserToken,  vendorApi.deleteVendor);
 router.get("/getbyid/:vendorId",authCompanyToken, authMarketToken , authUserToken, vendorApi.getVendorById);
+router.post("/getvendorsummary",authCompanyToken, authMarketToken , authUserToken, vendorApi.getallVendorSummary);
 
 export default router;

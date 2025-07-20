@@ -117,7 +117,7 @@ console.log(isDirty, isValid, isSubmitting)
   return (
     
     <form onSubmit={handleSubmit(data=>UpdateEmployee({data, Employeeid:`${selectedEmployee.id}`}))}>
-        <div style={{ gap: "20px", flexDirection: "column", display: "flex"}}>
+        <div style={{ gap: "20px", flexDirection: "column", display: "flex", marginTop:"30px"}}>
        
       <div className="primaryformsection">
         <div className="primaryformsectiontitle">Personal details</div>
@@ -156,7 +156,7 @@ console.log(isDirty, isValid, isSubmitting)
           textfieldclassname="primarytextfieldclass"
           divclassname="primarytextdivclass"
           defaultValue=""
-          label=""
+          label="First name"
           direction="row"
           type="text"
           placeholder="Employee name"
@@ -169,7 +169,7 @@ console.log(isDirty, isValid, isSubmitting)
           textfieldclassname="primarytextfieldclass"
           divclassname="primarytextdivclass"
           defaultValue=""
-          label=""
+          label="Last name"
           direction="row"
           type="text"
           placeholder="Employee name"
@@ -269,6 +269,27 @@ console.log(isDirty, isValid, isSubmitting)
         />
         </div>
 
+      
+       
+       </div>
+        </div>
+        <div className="primaryformsection">
+        <div className="primaryformsectiontitle">Address details</div>
+        <div className="primaryformsectioncontent">
+        <Labelwithtextarea
+          register={register}
+          errors={errors}
+          name="address"
+          labelclassname="formlabel"
+          textfieldclassname="primarytextareaclass"
+          divclassname="primarytextdivclass"
+          defaultValue=""
+          label="Address"
+          direction="row"
+          type="text"
+          placeholder="Address"
+        />
+
        <div style={{display:"flex", gap:"20px"}}>
         <Labelwithtextfield
           register={register}
@@ -324,21 +345,7 @@ console.log(isDirty, isValid, isSubmitting)
           placeholder="Extra information"
         />
         </div>
-
-        <Labelwithtextarea
-          register={register}
-          errors={errors}
-          name="address"
-          labelclassname="formlabel"
-          textfieldclassname="primarytextareaclass"
-          divclassname="primarytextdivclass"
-          defaultValue=""
-          label="Address"
-          direction="row"
-          type="text"
-          placeholder="Address"
-        />
-       </div>
+        </div>
         </div>
         <div className="primaryformsection">
         <div className="primaryformsectiontitle">Office details</div>
@@ -465,7 +472,7 @@ console.log(isDirty, isValid, isSubmitting)
           placeholder="Extra information"
         />
       </div>
-      <div style={{display:"flex", justifyContent:"end", marginTop:"10px", width:"732px", margin:"auto"}}>
+      <div style={{display:"flex", justifyContent:"end", marginTop:"10px", width:"808px", margin:"auto"}}>
         <button style={{marginTop:"10px"}} type="submit"  className='secondarybtn' disabled={!isDirty || !isValid || isSubmitting}>
         {'Update'}
       </button>

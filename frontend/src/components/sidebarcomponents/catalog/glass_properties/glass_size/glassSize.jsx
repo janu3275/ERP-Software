@@ -8,6 +8,7 @@ import GlassSizeform from './glassSizeform';
 import { Axios } from "../../../../../../utils/axios.mjs";
 import DialogDemo from "../../../../../assets/singlecomponents/dialog/dialog";
 import Table from "../../../../commoncomponents/tableComponent/table";
+import { generateRandomId } from "../../../../../commonfn";
 
 
 const GlassSize = () => {

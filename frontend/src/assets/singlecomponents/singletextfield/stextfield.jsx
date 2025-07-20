@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './stextfield.css';
 
 
-const Stextfield = ({name,label,onChange,value,type,labelclassname,textfieldclassname,divclassname,placeholder,index, disabled, error}) => {
+const Stextfield = ({name,label,onChange, onclick, value,type,labelclassname,textfieldclassname,divclassname,placeholder,index, disabled, error}) => {
 console.log(name,error, value)
 
 return (  
@@ -12,7 +12,7 @@ return (
     className={divclassname}
   >
     {label.length>0 && <Label.Root className={"LabelRoot "+labelclassname} htmlFor={name}>{label}</Label.Root>}
-    <div style={{display:"flex", flexDirection:"column"}}>
+    <div style={{display:"flex", flexDirection:"column"}} onClick={onclick} >
     <input  placeholder={placeholder} min={0}   disabled={disabled} className={"Input " + textfieldclassname} onChange={(e)=>onChange(e,name,index)} type={type} id={name} value={value} />
     <div style={{height:"1rem", display:!error && "none"}}>{error && <div style={{fontSize:"0.8rem", color:"red"}}>{error}</div>}</div>
     </div>
@@ -34,7 +34,8 @@ Stextfield.propTypes = {
     onChange: PropTypes.func.isRequired,
     index:PropTypes.number,
     disabled: PropTypes.bool.isRequired,
-    error: PropTypes.any
+    error: PropTypes.any,
+    onclick: PropTypes.any
 }
 
 

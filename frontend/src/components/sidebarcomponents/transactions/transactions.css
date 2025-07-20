@@ -13,3 +13,36 @@
     max-height: calc(100vh - 100px);
     overflow: auto;
 }
+
+.tablesummary{
+    min-height: 30px;
+    /* border: 1px solid rgb(233, 233, 231); */
+    border-radius: 4px;
+    /* padding: 10px 0px; */
+    display: flex;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.tablesummarytab{
+    border: 1px solid rgb(233, 233, 231);
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.tablesummarytopic{
+    padding: 5px 10px;
+    border-bottom: 1px solid rgb(233, 233, 231);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+}
+
+.tablesummaryinfo{
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+   
+}

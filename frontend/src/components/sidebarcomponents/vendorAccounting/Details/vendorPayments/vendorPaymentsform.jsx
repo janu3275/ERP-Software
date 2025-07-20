@@ -10,6 +10,7 @@ import Labelwithtextfield from '../../../../../assets/formcomponents/textfield.j
 import Labelwithtextarea from '../../../../../assets/formcomponents/textarea.jsx';
 import Calendarform from '../../../../../assets/formcomponents/calender/calender.jsx';
 import ImageUpload from '../../../../../assets/formcomponents/imageUpload/imageUpload.jsx';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 
 
@@ -68,8 +69,17 @@ console.log(errors)
   return (
     
     <form className='formclass' onSubmit={handleSubmit(data=>selectedVendorPayment?UpdateVendorPayment({data, Paymentid:`${selectedVendorPayment.id}`}):createNewVendorPayment(data))}>
-       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px"}}>
-        <div className='formheading'>{selectedVendorPayment?'Update payment': 'Add payment'}</div>
+       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0px", marginBottom:"70px", gap:"10px"}}>
+        <div className='formheading'><Icon
+  icon="ph:money"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(30 171 7)",
+    cursor:"pointer"
+    
+    }}
+/>{selectedVendorPayment?'Update payment': 'Add payment'}</div>
      <div style={{display:"flex", gap:"20px"}}>
        
 

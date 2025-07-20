@@ -284,9 +284,13 @@ const paymentHistoryApi = {
     // BODY VALIDATION
     const schema = Joi.object({
       employee_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
 
-    let body = req.params;
+    let body = {...req.params, ...req.body};
     const { error, value } = schema.validate(body);
 
     // HANDLE VALIDATION ERROR
@@ -298,6 +302,8 @@ const paymentHistoryApi = {
         error: error.details,
       });
     }
+
+    const { previousCursor, nextCursor } = value
 
     // PROCEEDING TOWARDS FETCHING SALARY TRANSACTIONS
     const getPaymentsQuery = `SELECT
@@ -316,15 +322,100 @@ FROM
     payment_history AS ph
 INNER JOIN
     employee_paymentinfo AS pi ON ph.id = pi.paymenthistoryid
-WHERE ph.employee_id = $1    
+WHERE 
+    ph.employee_id = $1 
+    AND ($2::date IS NULL OR ph.payment_date >= $2::date)
+    AND ($3::date IS NULL OR ph.payment_date <= $3::date)
+    AND ($4::numeric IS NULL OR (
+        COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+    ) >= $4::numeric)
+    AND ($5::numeric IS NULL OR (
+        COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+    ) <= $5::numeric)
+    AND ($6::text IS NULL OR ph.description ILIKE '%' || $6::text || '%')
+    ${nextCursor ? `AND id > ${nextCursor}` : ''}
+    ${previousCursor ? `AND id < ${previousCursor}` : ''}
+ORDER BY
+    id ASC
+LIMIT
+    $7;`;
+
+    const getPaymentsSummaryQuery = `
+WITH employee_payments AS (
+    SELECT
+        ph.id AS id,
+        ph.employee_id,
+        ph.payment_date,
+        ph.attachment_path,
+        ph.description,
+        COALESCE(pi.cash, 0) AS cash,
+        COALESCE(pi.upi, 0) AS upi,
+        COALESCE(pi.cheque, 0) AS cheque,
+        COALESCE(pi.other, 0) AS other,
+        (SELECT json_build_object(
+            'cash', pi.cash,
+            'upi', pi.upi,
+            'cheque', pi.cheque,
+            'other', pi.other
+        )) AS payment_info
+    FROM
+        payment_history AS ph
+    INNER JOIN
+        employee_paymentinfo AS pi ON ph.id = pi.paymenthistoryid
+    WHERE 
+        ph.employee_id = $1 
+        AND ($2::date IS NULL OR ph.payment_date >= $2::date)
+        AND ($3::date IS NULL OR ph.payment_date <= $3::date)
+        AND ($4::numeric IS NULL OR (
+            COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+        ) >= $4::numeric)
+        AND ($5::numeric IS NULL OR (
+            COALESCE(pi.cash, 0) + COALESCE(pi.upi, 0) + COALESCE(pi.cheque, 0) + COALESCE(pi.other, 0)
+        ) <= $5::numeric)
+        AND ($6::text IS NULL OR ph.description ILIKE '%' || $6::text || '%')
+    )
+SELECT
+    (SELECT SUM(cash) FROM employee_payments) AS total_cash,
+    (SELECT SUM(upi) FROM employee_payments) AS total_upi,
+    (SELECT SUM(cheque) FROM employee_payments) AS total_cheque,
+    (SELECT SUM(other) FROM employee_payments) AS total_other
+FROM
+    employee_payments ep
+ORDER BY
+    id ASC;
 `;
 
+
     try {
+
       console.log("employeeid", value.employee_id);
+      const { filters, limit } = value;
+
+
+      const queryParams = [
+        value.employee_id,
+        filters.payment_date.minValue || null,
+        filters.payment_date.maxValue || null,
+        filters.amount.minValue || null,
+        filters.amount.maxValue || null,
+        filters.description || null,
+        limit
+      ]
+
+      const summaryQryParams = [
+        value.employee_id,
+        filters.payment_date.minValue || null,
+        filters.payment_date.maxValue || null,
+        filters.amount.minValue || null,
+        filters.amount.maxValue || null,
+        filters.description || null
+      ]
 
       let employeePayments = (
-        await queryDB(getPaymentsQuery, [value.employee_id])
+        await queryDB(getPaymentsQuery, queryParams)
       ).rows;
+
+      const summary = (await queryDB(getPaymentsSummaryQuery, summaryQryParams)).rows[0]|| null;
 
       console.log("jkhk", employeePayments);
       const femployeePayments = employeePayments.map((payment) => {
@@ -337,18 +428,32 @@ WHERE ph.employee_id = $1
 
       console.log("klnkl", femployeePayments);
       if (employeePayments) {
+
+        const nextCursor = femployeePayments[femployeePayments.length - 1].id;
+        const previousCursor = femployeePayments[0].id;
+
         res.status(200).json({
           success: true,
           message: "Salary payments retrieved successfully",
           data: convertData(femployeePayments),
+          summary: summary,
+          nextCursor: femployeePayments.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: femployeePayments.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
+
         res.status(200).json({
           success: false,
           message: "Problem in getting payment payments",
           data: employeePayments,
+          summary: null,
+          nextCursor: null, 
+          previousCursor: null,
         });
+        
       }
+
     } catch (error) {
       return res
         .status(200)

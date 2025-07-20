@@ -438,9 +438,13 @@ WHERE
     // BODY VALIDATION
     const schema = Joi.object({
       employee_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
 
-    let body = req.params;
+    let body = {...req.params, ...req.body};
     const { error, value } = schema.validate(body);
 
     // HANDLE VALIDATION ERROR
@@ -453,33 +457,105 @@ WHERE
       });
     }
 
+    const { previousCursor, nextCursor } = value
+
     // PROCEEDING TOWARDS FETCHING EMPLOYEE ATTENDANCE
     const getAttendanceQuery = `
-            SELECT * FROM employee_attendance WHERE employee_id = $1;
-        `;
+            SELECT * FROM employee_attendance AS ea
+           WHERE
+             ea.employee_id = $1
+             AND ($2::date IS NULL OR ea.attendance_date >= $2::date)
+             AND ($3::date IS NULL OR ea.attendance_date <= $3::date)
+             AND ($4::text IS NULL OR ea.note ILIKE '%' || $4::text || '%')
+             AND ($5::text IS NULL OR ea.attendance_status = $5::text)
+             ${nextCursor ? `AND id > ${nextCursor}` : ''}
+             ${previousCursor ? `AND id < ${previousCursor}` : ''}
+             ORDER BY ea.id ASC
+             LIMIT $6;`;
+
+     const getAttendanceSummaryQuery = `
+    WITH filtered_attendance AS (
+    SELECT 
+        ea.*
+    FROM 
+        employee_attendance AS ea
+    WHERE
+        ea.employee_id = $1
+        AND ($2::date IS NULL OR ea.attendance_date >= $2::date)
+        AND ($3::date IS NULL OR ea.attendance_date <= $3::date)
+        AND ($4::text IS NULL OR ea.note ILIKE '%' || $4::text || '%')
+        AND ($5::text IS NULL OR ea.attendance_status = $5::text)
+    )
+SELECT
+    (SELECT COUNT(*) FROM filtered_attendance WHERE attendance_status = 'present') AS present_count,
+    (SELECT COUNT(*) FROM filtered_attendance WHERE attendance_status = 'absent') AS absent_count
+FROM
+    filtered_attendance fa
+ORDER BY
+    fa.id ASC;
+`;
+        
 
     try {
+
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.employee_id,
+        filters.attendance_date.minValue || null,
+        filters.attendance_date.maxValue || null,
+        filters.note || null,
+        filters.attendance_status || null,
+        limit
+      ]
+
+      const summaryQueryParams = [
+        value.employee_id,
+        filters.attendance_date.minValue || null,
+        filters.attendance_date.maxValue || null,
+        filters.note || null,
+        filters.attendance_status || null
+      ]
+
+
       const allAttendance = (
-        await queryDB(getAttendanceQuery, [value.employee_id])
+        await queryDB(getAttendanceQuery, queryParams)
       ).rows;
+
+      const summary = (
+        await queryDB(getAttendanceSummaryQuery, summaryQueryParams)
+      ).rows[0] || null;
+
       if (allAttendance) {
+
+        const nextCursor = allAttendance[allAttendance.length - 1].id;
+        const previousCursor = allAttendance[0].id;
+
         res.status(200).json({
           success: true,
           message: "Employee attendance retrieved successfully",
           data: allAttendance,
+          summary: summary,
+          nextCursor: allAttendance.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allAttendance.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
       } else {
         res.status(200).json({
           success: false,
           message: "Problem in getting employee attendance",
           data: allAttendance,
+          summary: null,
+          nextCursor: null, 
+          previousCursor: null
         });
       }
+
     } catch (error) {
       return res
         .status(200)
         .json({ success: false, message: "Fetching error", error: error });
     }
+
   }),
 
   getMonthAttendancestatus: asyncHandler(async (req, res, next) => {

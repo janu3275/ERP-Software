@@ -7,6 +7,8 @@ import Labelwithtextarea from '../../../../../assets/formcomponents/textarea.jsx
 import Calendarform from '../../../../../assets/formcomponents/calender/calender.jsx';
 import SingleSelectDemo from '../../../../../assets/formcomponents/select.jsx';
 import { statusItems } from '../../../orders/allOrders/staticOptions.jsx';
+import { Icon } from '@iconify/react/dist/iconify.js';
+import { returnConvertedDate } from '../../../../../commonfn.jsx';
 
 
 
@@ -61,13 +63,23 @@ console.log(errors)
   return (
     
     <form className='formclass' onSubmit={handleSubmit(data=>UpdateAttendance({data, attendanceid:`${selectedAttendance.id}`}))}>
-       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px"}}>
-        <div className='formheading'>{selectedAttendance?'Update attendance': 'Add attendance'}</div>
+       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px", gap:"10px"}}>
+        <div className='formheading'><Icon
+      icon="icon-park-outline:people-bottom"
+      style={{
+        width: "1.5rem",
+        height: "1.5rem",
+        color: "rgb(60, 137, 255)",
+        cursor:"pointer"
+        
+        }}
+    />{selectedAttendance?'Update attendance': 'Add attendance'} </div>
+    <div style={{marginBottom:"10px", fontWeight:"500", fontSize:"medium"}}>{returnConvertedDate(selectedAttendance?.attendance_date??'')}</div>
      <div style={{display:"flex", gap:"20px", justifyContent:"space-between"}}>
        
 
             
-          <Controller
+          {/* <Controller
             name="attendance_date"
             control={control}
             rules={{ required: true }}
@@ -91,7 +103,7 @@ console.log(errors)
              />
              )}
 
-          />
+          /> */}
 
 
           <Controller

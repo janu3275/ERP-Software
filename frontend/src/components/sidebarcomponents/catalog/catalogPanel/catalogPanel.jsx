@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import AccordionDemo from "../../../../assets/singlecomponents/accordion/accordion";
+import PanelButton from "../../../../assets/singlecomponents/panelButton/panelbutton";
 
 
 
@@ -185,7 +186,8 @@ const CatalogPanel = ({  selectTab, selectedTab }) => {
      <AccordionDemo items={expenseItems}/>
      <AccordionDemo items={employItems}/>
 
-     {restItems.map((tab, index)=> <button key={index} className={selectedTab[tab]?"sidebarButton select":"sidebarButton"}  onClick={()=>selectTab(tab)}> 
+     {restItems.map((tab, index)=> 
+     <button key={index} className={selectedTab[tab]?"sidebarButton select":"sidebarButton"}  onClick={()=>selectTab(tab)}> 
             <div  className="singlepanel">
                 <div className="PanelName">{returnHeading(tab)}</div>
                 <div>  
@@ -200,7 +202,23 @@ const CatalogPanel = ({  selectTab, selectedTab }) => {
                 />}
                 </div>
             </div>  
-        </button>)}
+        </button>
+
+// <PanelButton key={index} selected={selectedTab[tab]} name={returnHeading(tab)}  funct={selectTab}  functprop={tab}
+// icon={<Icon
+//   icon="bi:people"
+//   style={{
+//     width: "1.3rem",
+//     height: "1.3rem",
+//     color: "rgb(30, 171, 7)",
+//     cursor:"pointer"
+    
+//     }}
+// />}
+// />
+      
+      
+      )}
        
        
         </div>

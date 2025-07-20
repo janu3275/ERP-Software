@@ -16,8 +16,8 @@ return (
    <Label.Root  className={labelclassname} htmlFor={name}>
       {label}
     </Label.Root>
-  <div style={{display:"flex", flexDirection:"column"}} >
-  <Select.Root name={name} defaultValue={value} value={value} onValueChange={(e)=>onChange(e,name,index)}>
+  <div style={{display:"flex", flexDirection:"column", width:"100%"}}  >
+  <Select.Root name={name} defaultValue={value} value={value}  onValueChange={(e)=>onChange(e,name,index)}>
     <Select.Trigger className={"SelectTrigger " + triggerclassname}  aria-label={label} >
        <Select.Value  placeholder={placeholder} aria-label={value}>
           {value}
@@ -53,7 +53,7 @@ return (
       </Select.Content>
     </Select.Portal>
   </Select.Root>
-  <div style={{height:"1rem" ,display:!error && "none"}}>{error && <div style={{fontSize:"0.8rem", color:"red"}}>{error}</div>}</div>
+  <div style={{display:!error && "none"}}>{error && <div style={{fontSize:"0.8rem", color:"red"}}>{error}</div>}</div>
   </div>
   
   </div>

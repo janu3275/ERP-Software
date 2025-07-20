@@ -46,13 +46,14 @@ const marketplaceApi = {
     // Update an existing marketplace
     updateMarketplace: asyncHandler(async (req, res, next) => {
         // Validate request body
+        const companyid = req.company.companyid;
         const schema = Joi.object({
             id: Joi.number().integer().required(),
             name: Joi.string(),
-            company_id: Joi.number().integer(),
+            companyid: Joi.number().integer(),
             image_src: Joi.string().required()
         });
-        const { error, value } = schema.validate(req.body);
+        const { error, value } = schema.validate({...req.body, companyid });
 
         if (error) {
             return res.status(400).json({ success: false, message: "Validation error", error: error.details });
@@ -61,11 +62,12 @@ const marketplaceApi = {
         // Proceed to update the marketplace
         const { id, name, image_src } = value;
         const updateMarketplaceQuery = `
-            UPDATE marketplace
-            SET name = COALESCE($1, name),
-            SET image_src = COALESCE($2, image_src) 
-            WHERE id = $3
-            RETURNING *;`;
+  UPDATE marketplace
+  SET name = COALESCE($1, name),
+      image_src = COALESCE($2, image_src)
+  WHERE id = $3
+  RETURNING *;
+`;
 
         try {
             const updatedMarketplace = (await queryDB(updateMarketplaceQuery, [name, image_src, id])).rows[0];
@@ -81,13 +83,13 @@ const marketplaceApi = {
 
     // Delete a marketplace
     deleteMarketplace: asyncHandler(async (req, res, next) => {
-        const { id } = req.params;
+        const { market_id } = req.query;
         const deleteMarketplaceQuery = `
             DELETE FROM marketplace
             WHERE id = $1
             RETURNING *;`;
         try {
-            const deletedMarketplace = (await queryDB(deleteMarketplaceQuery, [id])).rows[0];
+            const deletedMarketplace = (await queryDB(deleteMarketplaceQuery, [market_id])).rows[0];
             if (!deletedMarketplace) {
                 return res.status(404).json({ success: false, message: "Marketplace not found" });
             }
@@ -180,7 +182,7 @@ const marketplaceApi = {
             return res.status(500).json({ success: false, message: "Error retrieving marketplaces", error: error });
         }
       
-      })
+    })
   
 
 };

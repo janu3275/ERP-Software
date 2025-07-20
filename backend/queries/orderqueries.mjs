@@ -7,6 +7,7 @@ const orderQueries = {
           order_date,
           completion_date,
           measuredby,
+          shipping_address,
           product_charges,
           measurement_charges,
           dilevery_charges,
@@ -16,14 +17,13 @@ const orderQueries = {
           order_status,
           market_id
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
         )returning *;`,
 
         addOrderProductsqry : `INSERT INTO order_products (
         product_id,
         orderid
-       
-      ) VALUES ( $1, $2 ) returning *;`,
+        ) VALUES ( $1, $2 ) returning *;`,
 
         addOrderProductServiceqry : `INSERT INTO order_prod_services (
           glass_custom_service_id,
@@ -207,7 +207,8 @@ const orderQueries = {
         ci.id;
         `,
 
-        getFilteredOrderByStatusqry:`SELECT
+        getFilteredOrderByStatusqry : (previousCursor, nextCursor) => {
+          return `SELECT
         oi.id AS id,
         oi.order_id AS order_number,
         ci.name AS customer_name,
@@ -219,6 +220,7 @@ const orderQueries = {
         oi.order_date AS order_date,
         oi.completion_date AS completion_date,
         oi.measuredby AS measured_by,
+        oi.shipping_address AS shipping_address,
         oi.product_charges AS product_charges,
         oi.measurement_charges AS measurement_charges,
         oi.dilevery_charges AS dilevery_charges,
@@ -234,38 +236,48 @@ const orderQueries = {
         oi.market_id = $1
         AND oi.order_status IN ($2)
         AND (
-          $3 IS NULL
-          OR ci.name LIKE '%' || $3 || '%'
+          $3::text IS NULL
+          OR oi.order_id LIKE '%' || $3::text || '%'
         )
         AND (
-          $4 IS NULL
-          OR oi.order_date >= $4
+          $4::text IS NULL
+          OR ci.name LIKE '%' || $4::text || '%'
         )
         AND (
-          $5 IS NULL
-          OR oi.order_date <= $5
+          $5::date IS NULL
+          OR oi.order_date >= $5::date
         )
         AND (
-          $6 IS NULL
-          OR oi.completion_date >= $6
+          $6::date IS NULL
+          OR oi.order_date <= $6::date
         )
         AND (
-          $7 IS NULL
-          OR oi.completion_date <= $7
+          $7::date IS NULL
+          OR oi.completion_date >= $7::date
         )
         AND (
-          $8 IS NULL
-          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) >= $8
+          $8::date IS NULL
+          OR oi.completion_date <= $8::date
         )
         AND (
-          $9 IS NULL
-          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) <= $9
+          $9::numeric IS NULL
+          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) >= $9::numeric
         )
-      GROUP BY
-        oi.id,
-        ci.id;`,
+        AND (
+          $10::numeric IS NULL
+          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) <= $10::numeric
+        )
+        ${nextCursor ? `AND oi.id > ${nextCursor}` : ''}
+        ${previousCursor ? `AND oi.id < ${previousCursor}` : ''}
+    ORDER BY
+        oi.id ASC
+    LIMIT
+        $11;`
+      },
 
-        getAllOrderByCustomerqry : `SELECT 
+        getAllOrderByCustomerqry : ( previousCursor, nextCursor ) => {
+
+        return `SELECT
         oi.id AS id,
         oi.order_id AS order_number,
         ci.name AS customer_name,
@@ -277,6 +289,7 @@ const orderQueries = {
         oi.order_date AS order_date,
         oi.completion_date AS completion_date,
         oi.measuredby AS measured_by,
+        oi.shipping_address AS shipping_address,
         oi.product_charges AS product_charges,
         oi.measurement_charges AS measurement_charges,
         oi.dilevery_charges AS dilevery_charges,
@@ -284,16 +297,54 @@ const orderQueries = {
         oi.fitting_charges AS fitting_charges,
         oi.discount AS discount,
         oi.order_status AS order_status
-    FROM 
+    FROM
         order_info oi
-    JOIN 
+    JOIN
         customerinfo ci ON oi.customer_id = ci.id
-    WHERE 
-        oi.market_id = $1 AND oi.customer_id = $2
-    GROUP BY 
-        oi.id, 
-        ci.id;
-        `,
+    WHERE
+        oi.market_id = $1
+        AND oi.customer_id = $2
+        AND ($3::text IS NULL OR oi.order_id ILIKE '%' || $3::text || '%')
+        AND ($4::text IS NULL OR oi.order_status = $4::text)
+        AND ($5::text IS NULL OR ci.name ILIKE '%' || $5::text || '%')
+        AND ($6::date IS NULL OR oi.order_date >= $6::date)
+        AND ($7::date IS NULL OR oi.order_date <= $7::date)
+        AND ($8::date IS NULL OR oi.completion_date >= $8::date)
+        AND ($9::date IS NULL OR oi.completion_date <= $9::date)
+        AND ($10::numeric IS NULL OR (
+            SELECT
+                COALESCE(SUM(cpi.cash), 0) +
+                COALESCE(SUM(cpi.upi), 0) +
+                COALESCE(SUM(cpi.cheque), 0) +
+                COALESCE(SUM(cpi.other), 0)
+            FROM
+                cust_payment_history cph
+            JOIN
+                cust_paymentinfo cpi ON cph.id = cpi.custpayhistoryid
+            WHERE
+                cph.customer_id = oi.customer_id
+        ) >= $10::numeric)
+        AND ($11::numeric IS NULL OR (
+            SELECT
+                COALESCE(SUM(cpi.cash), 0) +
+                COALESCE(SUM(cpi.upi), 0) +
+                COALESCE(SUM(cpi.cheque), 0) +
+                COALESCE(SUM(cpi.other), 0)
+            FROM
+                cust_payment_history cph
+            JOIN
+                cust_paymentinfo cpi ON cph.id = cpi.custpayhistoryid
+            WHERE
+                cph.customer_id = oi.customer_id
+        ) <= $11::numeric)
+        ${nextCursor ? `AND oi.id > ${nextCursor}` : ''}
+        ${previousCursor ? `AND oi.id < ${previousCursor}` : ''}
+    ORDER BY
+        oi.id ASC
+    LIMIT
+        $12;
+        `
+      },
 
         getFilteredOrderByCustomerQry: `SELECT
         oi.id AS id,
@@ -397,7 +448,8 @@ const orderQueries = {
         ci.id;
         `,
 
-        getFilteredAllOrderqry : `SELECT
+        getFilteredAllOrderqry : (previousCursor, nextCursor) => {
+          return `SELECT
         oi.id AS id,
         oi.order_id AS order_number,
         ci.name AS customer_name,
@@ -409,6 +461,7 @@ const orderQueries = {
         oi.order_date AS order_date,
         oi.completion_date AS completion_date,
         oi.measuredby AS measured_by,
+        oi.shipping_address AS shipping_address,
         oi.product_charges AS product_charges,
         oi.measurement_charges AS measurement_charges,
         oi.dilevery_charges AS dilevery_charges,
@@ -423,42 +476,60 @@ const orderQueries = {
       WHERE
         oi.market_id = $1
         AND (
-          $2 IS NULL
-          OR ci.name LIKE '%' || $2 || '%'
+          $2::text IS NULL
+          OR oi.order_id LIKE '%' || $2::text || '%'
         )
         AND (
-          $3 IS NULL
-          OR oi.order_date >= $3
+          $3::text IS NULL
+          OR ci.name LIKE '%' || $3::text || '%'
         )
         AND (
-          $4 IS NULL
-          OR oi.order_date <= $4
+          $4::date IS NULL
+          OR oi.order_date >= $4::date
         )
         AND (
-          $5 IS NULL
-          OR oi.completion_date >= $5
+          $5::date IS NULL
+          OR oi.order_date <= $5::date
         )
         AND (
-          $6 IS NULL
-          OR oi.completion_date <= $6
+          $6::date IS NULL
+          OR oi.completion_date >= $6::date
         )
         AND (
-          $7 IS NULL
-          OR oi.order_status = $7
+          $7::date IS NULL
+          OR oi.completion_date <= $7::date
         )
         AND (
-          $8 IS NULL
-          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) >= $8
+          $8::text IS NULL
+          OR oi.order_status = $8::text
         )
         AND (
-          $9 IS NULL
-          OR (oi.product_charges + COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) + oi.labour_charges + COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(oi.discount, 0)) <= $9
+          $9::numeric IS NULL
+          OR (COALESCE(oi.product_charges,0) +
+          COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) +
+          COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) +
+          COALESCE(oi.labour_charges,0) +
+          COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) -
+          COALESCE(oi.discount, 0)) >= $9::numeric
         )
-      GROUP BY
-        oi.id,
-        ci.id;`,
+        AND (
+          $10::numeric IS NULL
+          OR (COALESCE(oi.product_charges,0) +
+            COALESCE(CAST(oi.measurement_charges->>'total' AS NUMERIC), 0) +
+            COALESCE(CAST(oi.dilevery_charges->>'total' AS NUMERIC), 0) +
+            COALESCE(oi.labour_charges,0) +
+            COALESCE(CAST(oi.fitting_charges->>'total' AS NUMERIC), 0) -
+            COALESCE(oi.discount, 0)) <= $10::numeric
+        )
+        ${nextCursor ? `AND oi.id > ${nextCursor}` : ''}
+        ${previousCursor ? `AND oi.id < ${previousCursor}` : ''}
+    ORDER BY
+        oi.id ASC
+    LIMIT
+        $11;`
+        },
 
-        getAllCustomerSummary: `SELECT
+        getAllCustomerSummary:  `SELECT
         c.id AS id,
         c.name AS customer_name,
         c.mobile_number,
@@ -495,94 +566,155 @@ const orderQueries = {
         c.market_id = $1
     GROUP BY
         c.id, c.name, c.mobile_number, c.whatsapp_number;`,
- getAllCustomerSummaryFiltered:`
-      SELECT  
-  c.id AS id,
-  c.name AS customer_name,
-  c.mobile_number,
-  c.whatsapp_number,
-  COALESCE(SUM(oi.order_total), 0) AS total_bill,
-  COALESCE(SUM(pi.payment_total), 0) AS total_paid,
-  COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) AS outstanding,
-  CASE
-    WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
-    ELSE 'payment pending'
-  END AS payment_status
+
+ getAllCustomerSummaryFiltered:(previousCursor, nextCursor) => {
+   return `
+   SELECT
+   c.id AS id,
+   c.name AS customer_name,
+   c.mobile_number,
+   c.whatsapp_number,
+   COALESCE(SUM(oi.order_total), 0) AS total_bill,
+   COALESCE(SUM(pi.payment_total), 0) AS total_paid,
+   COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) AS outstanding,
+   CASE
+       WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
+       ELSE 'payment pending'
+   END AS payment_status
 FROM
-  public.customerinfo c
-  LEFT JOIN (
-    SELECT
-      customer_id,
-      SUM(
-        product_charges + COALESCE(CAST(measurement_charges->>'total' AS NUMERIC), 0) + COALESCE(CAST(dilevery_charges->>'total' AS NUMERIC), 0) + labour_charges + COALESCE(CAST(fitting_charges->>'total' AS NUMERIC), 0) - COALESCE(discount, 0)
-      ) AS order_total
-    FROM
-      public.order_info
-    GROUP BY
-      customer_id
-  ) oi ON c.id = oi.customer_id
-  LEFT JOIN (
-    SELECT
-      customer_id,
-      SUM(cash + upi + cheque + other) AS payment_total
-    FROM
-      public.cust_payment_history cph
-      JOIN public.cust_paymentinfo cpi ON cph.id = cpi.custpayhistoryid
-    GROUP BY
-      customer_id
-  ) pi ON c.id = pi.customer_id
+   public.customerinfo c
+   LEFT JOIN (
+       SELECT
+           customer_id,
+           SUM(
+               product_charges
+               + COALESCE(CAST(measurement_charges->>'total' AS NUMERIC), 0)
+               + COALESCE(CAST(dilevery_charges->>'total' AS NUMERIC), 0)
+               + labour_charges
+               + COALESCE(CAST(fitting_charges->>'total' AS NUMERIC), 0)
+               - COALESCE(discount, 0)
+           ) AS order_total
+       FROM
+           public.order_info
+       GROUP BY
+           customer_id
+   ) oi ON c.id = oi.customer_id
+   LEFT JOIN (
+       SELECT
+           customer_id,
+           SUM(cash + upi + cheque + other) AS payment_total
+       FROM
+           public.cust_payment_history cph
+           JOIN public.cust_paymentinfo cpi ON cph.id = cpi.custpayhistoryid
+       GROUP BY
+           customer_id
+   ) pi ON c.id = pi.customer_id
 WHERE
-  c.market_id = $1
-  AND (
-    $2 IS NULL
-    OR c.name LIKE '%' || $2 || '%'
-  )
-  AND (
-    $3 IS NULL
-    OR c.mobile_number LIKE '%' || $3 || '%'
-  )
-  AND (
-    $4 IS NULL
-    OR c.whatsapp_number LIKE '%' || $4 || '%'
-  )
-  AND (
-    $5 IS NULL
-    OR (
-      CASE
-        WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
-        ELSE 'payment pending'
-      END = $5
-    )
-  )
-  AND (
-    $6 IS NULL
-    OR COALESCE(SUM(oi.order_total), 0) >= $6
-  )
-  AND (
-    $7 IS NULL
-    OR COALESCE(SUM(oi.order_total), 0) <= $7
-  )
-  AND (
-    $8 IS NULL
-    OR COALESCE(SUM(pi.payment_total), 0) >= $8
-  )
-  AND (
-    $9 IS NULL
-    OR COALESCE(SUM(pi.payment_total), 0) <= $9
-  )
-  AND (
-    $10 IS NULL
-    OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) >= $10
-  )
-  AND (
-    $11 IS NULL
-    OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) <= $11
-  )
+   c.market_id = $1
+   AND ($2::text IS NULL OR c.name ILIKE '%' || $2::text || '%')
+   AND ($3::text IS NULL OR c.mobile_number LIKE '%' || $3::text || '%')
+   AND ($4::text IS NULL OR c.whatsapp_number LIKE '%' || $4::text || '%')
 GROUP BY
-  c.id,
-  c.name,
-  c.mobile_number,
-  c.whatsapp_number;`  
+   c.id,
+   c.name,
+   c.mobile_number,
+   c.whatsapp_number
+HAVING
+   ($5::text IS NULL OR (
+       CASE
+           WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
+           ELSE 'payment pending'
+       END = $5::text
+   ))
+   AND ($6::numeric IS NULL OR COALESCE(SUM(oi.order_total), 0) >= $6::numeric)
+   AND ($7::numeric IS NULL OR COALESCE(SUM(oi.order_total), 0) <= $7::numeric)
+   AND ($8::numeric IS NULL OR COALESCE(SUM(pi.payment_total), 0) >= $8::numeric)
+   AND ($9::numeric IS NULL OR COALESCE(SUM(pi.payment_total), 0) <= $9::numeric)
+   AND ($10::numeric IS NULL OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) >= $10::numeric)
+   AND ($11::numeric IS NULL OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) <= $11::numeric)
+   ${nextCursor ? `AND id > ${nextCursor}` : ''}
+   ${previousCursor ? `AND id < ${previousCursor}` : ''}
+ORDER BY
+   id ASC
+LIMIT $12;`
+},
+
+getAllCustomerSummaryFiltered_Summary : `
+  WITH customer_summary AS (
+      SELECT
+          c.id AS id,
+          c.name AS customer_name,
+          c.mobile_number,
+          c.whatsapp_number,
+          COALESCE(SUM(oi.order_total), 0) AS total_bill,
+          COALESCE(SUM(pi.payment_total), 0) AS total_paid,
+          COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) AS outstanding,
+          CASE
+              WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
+              ELSE 'payment pending'
+          END AS payment_status
+      FROM
+          public.customerinfo c
+          LEFT JOIN (
+              SELECT
+                  customer_id,
+                  SUM(
+                      product_charges
+                      + COALESCE(CAST(measurement_charges->>'total' AS NUMERIC), 0)
+                      + COALESCE(CAST(dilevery_charges->>'total' AS NUMERIC), 0)
+                      + labour_charges
+                      + COALESCE(CAST(fitting_charges->>'total' AS NUMERIC), 0)
+                      - COALESCE(discount, 0)
+                  ) AS order_total
+              FROM
+                  public.order_info
+              GROUP BY
+                  customer_id
+          ) oi ON c.id = oi.customer_id
+          LEFT JOIN (
+              SELECT
+                  customer_id,
+                  SUM(cash + upi + cheque + other) AS payment_total
+              FROM
+                  public.cust_payment_history cph
+                  JOIN public.cust_paymentinfo cpi ON cph.id = cpi.custpayhistoryid
+              GROUP BY
+                  customer_id
+          ) pi ON c.id = pi.customer_id
+      WHERE
+          c.market_id = $1
+          AND ($2::text IS NULL OR c.name ILIKE '%' || $2::text || '%')
+          AND ($3::text IS NULL OR c.mobile_number LIKE '%' || $3::text || '%')
+          AND ($4::text IS NULL OR c.whatsapp_number LIKE '%' || $4::text || '%')
+      GROUP BY
+          c.id,
+          c.name,
+          c.mobile_number,
+          c.whatsapp_number
+      HAVING
+          ($5::text IS NULL OR (
+              CASE
+                  WHEN COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0) <= 0 THEN 'paid'
+                  ELSE 'payment pending'
+              END = $5::text
+          ))
+          AND ($6::numeric IS NULL OR COALESCE(SUM(oi.order_total), 0) >= $6::numeric)
+          AND ($7::numeric IS NULL OR COALESCE(SUM(oi.order_total), 0) <= $7::numeric)
+          AND ($8::numeric IS NULL OR COALESCE(SUM(pi.payment_total), 0) >= $8::numeric)
+          AND ($9::numeric IS NULL OR COALESCE(SUM(pi.payment_total), 0) <= $9::numeric)
+          AND ($10::numeric IS NULL OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) >= $10::numeric)
+          AND ($11::numeric IS NULL OR (COALESCE(SUM(oi.order_total), 0) - COALESCE(SUM(pi.payment_total), 0)) <= $11::numeric)
+       ORDER BY
+          c.id ASC
+      )
+  SELECT
+      (SELECT SUM(outstanding) FROM customer_summary) AS sum_outstanding,
+      (SELECT SUM(total_bill) FROM customer_summary) AS sum_total_bill,
+      (SELECT SUM(total_paid) FROM customer_summary) AS sum_total_paid
+  FROM customer_summary;
+  `
+
+
 }
 
 export { orderQueries };

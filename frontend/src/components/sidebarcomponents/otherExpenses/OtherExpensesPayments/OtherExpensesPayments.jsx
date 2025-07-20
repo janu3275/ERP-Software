@@ -392,7 +392,16 @@ const openForm = () => {
       <div className="infocomp">
   
      
-    <div style={{margin:0}} className="tabheading"> Other expenses payments </div>
+    <div style={{margin:0}} className="tabheading"><Icon
+          icon="fluent-mdl2:checked-out-by-other-12"
+          style={{
+            width: "3rem",
+            height: "3rem",
+            color: "rgb(185, 7, 7)",
+            cursor:"pointer"
+            
+            }}
+        /> Other expenses payments </div>
       <div style={{position:"relative"}}>
          <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1 }}> 
 

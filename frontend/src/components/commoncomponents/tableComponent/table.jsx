@@ -7,7 +7,7 @@ import { Icon } from '@iconify/react';
 import CheckboxDemo from '../../../assets/singlecomponents/checkbox/checkbox';
 import Actionpop from './actions/actionpop';
 
-const Table = ({ data  }) => {
+const Table = ({ data }) => {
   console.log(data)
     const storeFilterData = useFilterStore(state => state[data.name]);
     const [resizingColumn, setResizingColumn] = useState(null);
@@ -131,7 +131,7 @@ const Table = ({ data  }) => {
         const { colType, filterValue, colIndex } = filter
     
         if(colType === 'string' ){
-           rows = rows.filter((row)=> row[colIndex].value.includes(filterValue))
+           rows = rows.filter((row)=> row[colIndex].value.toLowerCase().includes(filterValue.toLowerCase()))
             
         }else if(colType === 'number'){
 
@@ -342,6 +342,8 @@ useEffect(() => {
 //  applyFilter(storeFilterData) COMMENTED OUT BECAUSE , IT WAS FOR CLIENT SIDE FILTERING , NOW WE WILL ENABLE SERVER SIDE FILTERING
  if(storeFilterData){
   filterRef.current = storeFilterData
+ }else{
+  filterRef.current = []
  }
  setinitialData(data)
  setfilteredAndSorteddata(data)
@@ -431,7 +433,7 @@ const getRowsFromCheckedRows = (checkedRows) => {
 
 }
 
-console.log(filteredAndSorteddata, checkedRows, initialData)
+console.log(filteredAndSorteddata, checkedRows, initialData, storeFilterData)
 
   return (
 
@@ -504,7 +506,7 @@ console.log(filteredAndSorteddata, checkedRows, initialData)
    {/* <div className='outer-row-container'> */}
    <div className='row-container'>
    {filteredAndSorteddata.rows.map((row, index)=>
-    <div key={index} className='table-row' >
+    <div onClick={()=>data?.onrowclick? data?.onrowclick(row): console.log("row clicked")} key={index} className='table-row' >
     <div className='table-checkbox'>
     <CheckboxDemo onChange={()=>checkRow(row[0].rowNo -1)} value={checkSingleSelected(row[0].rowNo-1)} />
     </div>
@@ -517,6 +519,7 @@ console.log(filteredAndSorteddata, checkedRows, initialData)
     </div>}
    </div>)}
    </div>
+   {/* <div className='footer-container'></div> */}
    {/* </div> */}
     </div>
 
@@ -527,6 +530,7 @@ console.log(filteredAndSorteddata, checkedRows, initialData)
         onMouseUp={handleDragEnd}
       />
     )}
+
   </div>
 );
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import StackedImages from "../../../../../assets/singlecomponents/stackedimages/stackedimages";
@@ -9,36 +9,20 @@ import { returnConvertedDate } from "../../../../../commonfn";
 import print from 'print-js'
 import { useQueryClient } from "@tanstack/react-query";
 import { useAddVendorPayment, useDeleteVendorPayment, useGetVendorPayments, useUpdateVendorPayment } from "../../../Vendorqueryhooks";
+import { useFilterStore } from "../../../../../../strore/notificationStore";
+import debounce from "lodash.debounce";
+import { returnVendorStringifiedFilter } from "../../vendorFilterFunctions";
 
 
 const VendorPayments = ({vendorId}) => { 
 
+    const storeFilterData = useFilterStore(state => state[`VendorPayments${vendorId}`]);
     const [openVendorPaymentsForm, setOpenVendorPaymentsForm] = useState(false);
     const [selectedVendorPayment, setselectedVendorPayment] = useState(null);
-
+    const vendorPaymentTableRef = useRef(null);
     const queryClient = useQueryClient();
 
-    const addVendorPaymentSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey : [`vendorPayments-${vendorId}`] });
-      // Close the vendor form
-      setOpenVendorPaymentsForm(false)
-    }
-
-    const updateVendorPaymentSuccessfn = () => {
-       // Invalidate or refetch the vendor list query
-       queryClient.invalidateQueries({ queryKey:[`vendorPayments-${vendorId}`] });
-       setselectedVendorPayment(null)
-       setOpenVendorPaymentsForm(false)
-
-    }
-
-    const deleteVendorPaymentSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey:[`vendorPayments-${vendorId}`] });
-
-    }
-
+  
     const returnTableData = (data) => {
       console.log(data)
       if(!data){
@@ -49,8 +33,32 @@ const VendorPayments = ({vendorId}) => {
       return tableobj
      
     }
+
+    const addVendorPaymentSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`vendorPayments-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPayments')], exact: true });
+      // Close the vendor form
+      setOpenVendorPaymentsForm(false)
+    }
+
+    const updateVendorPaymentSuccessfn = () => {
+       // Invalidate or refetch the vendor list query
+       queryClient.invalidateQueries({ queryKey : [`vendorPayments-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPayments')], exact: true });
+       setselectedVendorPayment(null)
+       setOpenVendorPaymentsForm(false)
+
+    }
+
+    const deleteVendorPaymentSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`vendorPayments-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPayments')], exact: true });
+
+    }
+
     
-    const { data: vendorPaymentArr , error: getVendorPaymenterr, isLoading: getVendorPaymentIsLoading } = useGetVendorPayments( vendorId );
+    const { data , error: getVendorPaymenterr,  fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getVendorPaymentIsLoading } = useGetVendorPayments( vendorId, null, returnVendorStringifiedFilter(storeFilterData, 'VendorPayments'));
+
+    const vendorPaymentArr = (data?.pages ?? []).flatMap( page => page?.data ?? [] );
 
     const { mutate: triggerCreateVendorPayment , error: addVendorPaymenterr, isLoading: addVendorPaymentIsLoading } = useAddVendorPayment( addVendorPaymentSuccessfn );
 
@@ -59,7 +67,42 @@ const VendorPayments = ({vendorId}) => {
     const { mutate: triggerDeleteVendorPayment , error: deleteVendorPaymenterr, isLoading: deleteVendorPaymentIsLoading } = useDeleteVendorPayment( deleteVendorPaymentSuccessfn );
 
  
-
+      // Infinite scroll event handler for loading next page
+      const loadNextPage = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      };
+    
+      // Infinite scroll event handler for loading previous page
+      // const loadPreviousPage = () => {
+      //   if (hasPreviousPage && !isFetchingPreviousPage) {
+      //     fetchPreviousPage();
+      //   }
+      // };
+    
+       // Attach scroll event for loading next or previous page on table scroll
+       useEffect(() => {
+        const onScroll = debounce(() => {
+          const table = vendorPaymentTableRef.current;
+          if (table) {
+            const { scrollTop, clientHeight, scrollHeight } = table;
+            // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+            //   loadPreviousPage();
+            // } else
+              console.log(scrollTop, clientHeight, scrollHeight)
+             if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+              loadNextPage();
+            }
+          }
+        }, 200);
+    
+        const table = vendorPaymentTableRef.current;
+        if (table) {
+          table.addEventListener('scroll', onScroll);
+          return () => table.removeEventListener('scroll', onScroll);
+        }
+      }, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
 
  
 
@@ -166,9 +209,17 @@ cursor: "pointer",
 
 
 
-const name = 'VendorPayments'
+const name = `VendorPayments${vendorId}`
 
-const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows}
+const tableRef = vendorPaymentTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+
+const serverSideFiltering = true;
+
+const tableData = { name, groupFunctions, rowWiseFunctions,  header, rows, tableRef, tableContainerStyle , serverSideFiltering}
 console.log(tableData)
 return tableData
 
@@ -176,7 +227,7 @@ return tableData
     }
 
 
-    const printPayment = (vendorPayment, VendorPaymentsarr) => { 
+    const printPayment = ( vendorPayment, VendorPaymentsarr ) => { 
 
       const selctedVendorPayment = VendorPaymentsarr.filter((row)=>row.id===vendorPayment[0].id)[0] || null
       const imageSrcArr = selctedVendorPayment.images.map((image)=>image.imageSrc)
@@ -194,6 +245,7 @@ return tableData
         targetStyles: ['*'],
         scanStyles: false,
       })
+
     }
 
     const printMultiplePayments = (vendorPayments, VendorPaymentsarr) => {

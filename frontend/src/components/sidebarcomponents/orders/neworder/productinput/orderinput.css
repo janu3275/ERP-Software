@@ -35,7 +35,7 @@
   }
 
   .producttrigger{
-    width: 100% !important;
+    width: -webkit-fill-available !important;
   }
 
   
@@ -48,7 +48,7 @@
 
 
 .sizetextclass{
-  width:80% !important;
+  width: 80px !important;
   color: black;
   background: rgba(242, 241, 238, 0.6);
   line-height: 20px;
@@ -66,7 +66,7 @@
 
 .sizedivclass{
   display: flex;
-  width: 123.6px;
+  width: 100px;
 }
 
 .measurediv{
@@ -79,11 +79,11 @@
 
 .accdivclass{
   display: flex;
-  width: 20%;
+  /* width: 20%; */
 }
 
 .acctextclass{
-  width:80% !important;
+  width:80px !important;
 }
 
 .paymenticon{

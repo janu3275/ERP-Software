@@ -29,7 +29,7 @@ const GlassAccessoryAndQunatity = ({ onChange, value, glassAccessoryArr }) => {
 
     return (
 
-       <div className="table-container">
+       <div style={{borderBottom: value.length>0?"0":"1px solid rgb(233, 233, 231)"}} className="table-container">
 
       <div className="table-header-row">
         <div className="table-header-cell" style={{minWidth:"30rem"}}>Glass Accessory</div>
@@ -40,7 +40,7 @@ const GlassAccessoryAndQunatity = ({ onChange, value, glassAccessoryArr }) => {
       {value.map((item, index)=> <div key={index} className="table-row">
         <div className="table-row-cell" style={{minWidth:"30rem"}}>{returnItemName(item)}</div>
         
-        <div className="table-row-cell" style={{paddingLeft:"0", width:"calc(100% - 42.25rem)", paddingRight:"1px", background:"rgba(242, 241, 238, 0.6)", marginBottom:"0.6px"}}>
+        <div className="table-row-cell" style={{paddingLeft:"1px", width:"auto", paddingRight:"1px", background:"rgba(242, 241, 238, 0.6)"}}>
         <Stextfield
             key={index}
             name={`${index}`}

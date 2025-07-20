@@ -7,57 +7,109 @@ import { Axios } from "../../../../../utils/axios.mjs";
 import { bankItems } from "../../orders/allOrders/staticOptions";
 import { returnAllemployee, returnConvertedDate, returnItems } from "../../../../commonfn";
 import StackedImages from "../../../../assets/singlecomponents/stackedimages/stackedimages";
+import { useQueryClient } from "@tanstack/react-query";
+import { useGetDepartments, useGetPositions} from "../../commonQueryHooks";
+import { useAddEmployee, useDeleteEmployee, useGetEmployees, useUpdateEmployee } from "./employeeCatalogQueryHooks";
 
 
 const Employee = () => {
   
     const [openemployeeForm, setOpenemployeeForm] = useState(false);
-    const [allemployeeinfo, setallemployeeinfo] = useState([]);
-    const [tableData, settableData] = useState(null);
+    // const [allemployeeinfo, setallemployeeinfo] = useState([]);
+    // const [tableData, settableData] = useState(null);
     const [selectedEmployee, setselectedEmployee] = useState(null);
-    const [posAndDepartArr, setposAndDepartArr] = useState({
-        posItems:[],
-        DepartItems:[]
-    });
+    // const [posAndDepartArr, setposAndDepartArr] = useState({
+    //     posItems:[],
+    //     DepartItems:[]
+    // });
 
-    const createNewemployee = async (data) => {
-      console.log(data)
-      const position = data.position_name
-      const positionid = returnPositionid(position, posAndDepartArr.posItems)
-      const department = data.department_name
-      const departmentid = returnDepartmentid(department, posAndDepartArr.DepartItems)
+    const queryClient = useQueryClient();
 
-
-      if(!positionid || !departmentid){
-          console.log("no position or department id found")
-          return 
+    const returnTableData = ( data, positems, departitems ) => {
+      console.log("🚀 ~ returnTableData ~ data:", data, positems, departitems)
+      if(!data){
+        return null
       }
+      const tableobj = convertDataForTable(data, positems, departitems);
+      return tableobj
+     
+    }
 
-      try {
+    const addEmployeeSuccessfn = () => {
+      // Invalidate or refetch the Employee list query
+      queryClient.invalidateQueries({ queryKey : ['Employees'] });
+      // Close the Employee form
+      setOpenemployeeForm(false)
+    }
 
-        let body = {
-          ...data,
-          position_id:positionid,
-          department_id: departmentid
-        }
-
-        let res = await Axios.post(`/employee/add`, body )
-
-        if(res.data.success){
-          getDataAndRefreshTable()
-          setOpenemployeeForm(false)
-        }
-
-      } catch (error) {
-        console.log(error)
-      }
+    const updateEmployeeSuccessfn = () => {
+       // Invalidate or refetch the Employee list query
+       queryClient.invalidateQueries({ queryKey:['Employees'] });
+       setselectedEmployee(null)
+       // Close the Employee form
+       setOpenemployeeForm(false);
 
     }
+
+    const deleteEmployeeSuccessfn = () => {
+      // Invalidate or refetch the Employee list query
+      queryClient.invalidateQueries({ queryKey:['Employees'] });
+
+    }
+
+    const { data: posArr , error: getposerr, isLoading: getposIsLoading } = useGetPositions();
+    const posItems = posArr ? returnItems(posArr, 'position_name', 'position_name', 'Positions'): null
+
+    const { data: departmentArr , error: getdepartmenterr, isLoading: getdepartmentIsLoading } = useGetDepartments();
+    const departItems = departmentArr ? returnItems(departmentArr, 'department_name', 'department_name', 'Departments'): null;
+
+    const { data: allemployeeinfo, error: getEmployeeerr, isLoading: getEmployeeIsLoading } = useGetEmployees();
+  
+    const { mutate: triggerCreateEmployee , error: addEmployeeerr, isLoading: addEmployeeIsLoading } = useAddEmployee(addEmployeeSuccessfn);
+
+    const { mutate: triggerUpdateEmployee , error: updateEmployeeerr, isLoading: updateEmployeeIsLoading } = useUpdateEmployee(updateEmployeeSuccessfn);
+
+    const { mutate: triggerDeleteEmployee , error: deleteEmployeeerr, isLoading: deleteEmployeeIsLoading } = useDeleteEmployee(deleteEmployeeSuccessfn);
+
+
+    // const createNewemployee = async (data) => {
+    //   console.log(data)
+    //   const position = data.position_name
+    //   const positionid = returnPositionid(position, posAndDepartArr.posItems)
+    //   const department = data.department_name
+    //   const departmentid = returnDepartmentid(department, posAndDepartArr.DepartItems)
+
+
+    //   if(!positionid || !departmentid){
+    //       console.log("no position or department id found")
+    //       return 
+    //   }
+
+    //   try {
+
+    //     let body = {
+    //       ...data,
+    //       position_id:positionid,
+    //       department_id: departmentid
+    //     }
+
+    //     let res = await Axios.post(`/employee/add`, body )
+
+    //     if(res.data.success){
+    //       getDataAndRefreshTable()
+    //       setOpenemployeeForm(false)
+    //     }
+
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+
+    // }
 
    
 
     const returnPositionid = (position, items) => { 
-        
+        console.log(position, items)
         const positionid = items[0].items.filter((item)=>item.value===position)[0].id
         if(positionid){
             return positionid
@@ -75,63 +127,63 @@ const Employee = () => {
 
     }
 
-    const returnAllPosition = async() => {
-        try {
-          let res = await Axios.get(`/position/getall`)
-          if(res.data.success){
-            console.log(res.data.data)
-            let arr = [...res.data.data]
-            return arr
-         }
-        } catch (error) {
-          console.log(error)
-          return []
-        }
-    }
+    // const returnAllPosition = async() => {
+    //     try {
+    //       let res = await Axios.get(`/position/getall`)
+    //       if(res.data.success){
+    //         console.log(res.data.data)
+    //         let arr = [...res.data.data]
+    //         return arr
+    //      }
+    //     } catch (error) {
+    //       console.log(error)
+    //       return []
+    //     }
+    // }
 
-    const returnAllDepartment = async() => {
-        try {
-          let res = await Axios.get(`/department/getall`)
-          if(res.data.success){
-            console.log(res.data.data)
-            let arr = [...res.data.data]
-            return arr
-         }
-        } catch (error) {
-          console.log(error)
-          return []
-        }
-    }
+    // const returnAllDepartment = async() => {
+    //     try {
+    //       let res = await Axios.get(`/department/getall`)
+    //       if(res.data.success){
+    //         console.log(res.data.data)
+    //         let arr = [...res.data.data]
+    //         return arr
+    //      }
+    //     } catch (error) {
+    //       console.log(error)
+    //       return []
+    //     }
+    // }
 
  
 
-      const setinitialData = async () => {
+    //   const setinitialData = async () => {
 
-        const posArr = await returnAllPosition()
-        const departmentArr = await returnAllDepartment()
-        const positems = returnItems(posArr, 'position_name', 'position_name', 'Positions')
-        const departitems = returnItems(departmentArr, 'department_name', 'department_name', 'Departments')
+    //     const posArr = await returnAllPosition()
+    //     const departmentArr = await returnAllDepartment()
+    //     const positems = returnItems(posArr, 'position_name', 'position_name', 'Positions')
+    //     const departitems = returnItems(departmentArr, 'department_name', 'department_name', 'Departments')
 
-        setposAndDepartArr({
-          posItems:positems,
-          DepartItems: departitems
-        })
+    //     setposAndDepartArr({
+    //       posItems:positems,
+    //       DepartItems: departitems
+    //     })
         
-        getDataAndRefreshTable(positems, departitems)
+    //     getDataAndRefreshTable(positems, departitems)
        
 
-    }
+    // }
 
-    const getDataAndRefreshTable = async(positems, departitems) => {
+    // const getDataAndRefreshTable = async(positems, departitems) => {
 
-        const employeearr = await returnAllemployee()
+    //     const employeearr = await returnAllemployee()
    
-        setallemployeeinfo(employeearr)
+    //     setallemployeeinfo(employeearr)
          
 
-        const tableobj = convertDataForTable(employeearr, positems, departitems);
-        settableData(tableobj)
-    }
+    //     const tableobj = convertDataForTable(employeearr, positems, departitems);
+    //     settableData(tableobj)
+    // }
 
  
 
@@ -368,27 +420,27 @@ const convertDataForTable = (data, positems, departitems) => {
 
     })
 
-const rowWiseFunctions = [{funcName:'Edit', funct:(employee)=>employeeFormOpen(employee, employeearr) , icon: <Icon
+const rowWiseFunctions = [{funcName:'Update', funct:(employee)=>employeeFormOpen(employee, employeearr) , icon: <Icon
 icon="mynaui:edit-one"
 style={{
   width: "1.1rem",
   height: "1.1rem",
-  VendorBills: "rgb(82, 78, 70)",
+  EmployeeBills: "rgb(82, 78, 70)",
   cursor: "pointer"
 }}
-     />}, {funcName:'Delete', funct:(employee)=>Deleteemployee(employee, employeearr), icon: <Icon
+     />}, {funcName:'Delete', funct:(employee)=>triggerDeleteEmployee({employee, employeearr}), icon: <Icon
      icon="mi:delete-alt"
      style={{
      width: "1.1rem",
      height: "1.1rem",
-     VendorBills: "rgb(82, 78, 70)",
+     EmployeeBills: "rgb(82, 78, 70)",
      cursor: "pointer",
     }}
     />}]
 
 
 const groupFunctions = [];
-const name = 'employee'
+const name = 'employee';
 
 const tableData = {name, groupFunctions, rowWiseFunctions, header, rows}
 console.log(tableData)
@@ -398,59 +450,60 @@ return tableData
     }
 
 
-const Deleteemployee = async(employee, employeearr) => {
-      try {
-        const selctedemployeeRow = employeearr.filter((row)=>row.id===employee[0].id)[0] || null
-        if(!selctedemployeeRow){
-          console.log(selctedemployeeRow)
-          return 
-        }
-        let res = await Axios.delete(`/employee/delete?employee_id=${selctedemployeeRow.id}`)
-        if(res.data.success){
-          getDataAndRefreshTable()
+// const Deleteemployee = async(employee, employeearr) => {
+//       try {
+//         const selctedemployeeRow = employeearr.filter((row)=>row.id===employee[0].id)[0] || null
+//         if(!selctedemployeeRow){
+//           console.log(selctedemployeeRow)
+//           return 
+//         }
+//         let res = await Axios.delete(`/employee/delete?employee_id=${selctedemployeeRow.id}`)
+//         if(res.data.success){
+//           getDataAndRefreshTable()
           
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
+//         }
+//       } catch (error) {
+//         console.log(error)
+//       }
+//     }
    
 
-const UpdateEmployee = async({data, Employeeid}) => {
-      console.log(data)
-      const position = data.position_name
-      const positionid = returnPositionid(position, posAndDepartArr.posItems)
-      const department = data.department_name
-      const departmentid = returnDepartmentid(department, posAndDepartArr.DepartItems)
+// const UpdateEmployee = async({data, Employeeid}) => {
+//       console.log(data)
+//       const position = data.position_name
+//       const positionid = returnPositionid(position, posAndDepartArr.posItems)
+//       const department = data.department_name
+//       const departmentid = returnDepartmentid(department, posAndDepartArr.DepartItems)
 
 
-      if(!positionid || !departmentid){
-          console.log("no position or department id found")
-          return 
-      }
+//       if(!positionid || !departmentid){
+//           console.log("no position or department id found")
+//           return 
+//       }
 
-      try {
-        let body = {
-          employee_id: `${Employeeid}`, 
-          ...data,
-          position_id:positionid,
-          department_id: departmentid
+//       try {
 
-        }
+//         let body = {
+//           Employee_id: `${Employeeid}`, 
+//           ...data,
+//           position_id:positionid,
+//           department_id: departmentid
 
-        let res = await Axios.post( `/employee/update`, body )
-        if(res.data.success){
-          getDataAndRefreshTable()
-          closeEmployeeForm()
-        }
+//         }
 
-      } catch (error) {
-        console.log(error)
-      }
-    }
+//         let res = await Axios.post( `/employee/update`, body )
+//         if(res.data.success){
+//           getDataAndRefreshTable()
+//           closeEmployeeForm()
+//         }
+
+//       } catch (error) {
+//         console.log(error)
+//       }
+//     }
 
 const employeeFormOpen = ( employee, employeearr ) => {
-      console.log(employee, employeearr, tableData)
+      console.log(employee, employeearr)
       const selctedemployeeRow = employeearr.filter((row)=>row.id===employee[0].id)[0] || null
       console.log(selctedemployeeRow)
       setselectedEmployee(selctedemployeeRow)
@@ -463,34 +516,47 @@ const employeeFormOpen = ( employee, employeearr ) => {
       setOpenemployeeForm(false)
     }
 
-    useEffect(() => {
-      setinitialData()
-    },[])
+    // useEffect(() => {
+    //   setinitialData()
+    // },[])
 
-    console.log(allemployeeinfo, posAndDepartArr, tableData)
+    console.log(allemployeeinfo)
+
     return (
 
         <div className="detailoutercomp">
           <div className="infocomp">
       
          
-        <div style={{margin:0}} className="tabheading">Employee Catalog</div>
+        <div style={{margin:0}} className="tabheading">
+        <Icon
+            icon="simple-line-icons:people"
+            style={{
+              width: "3rem",
+              height: "3rem",
+              color: "rgb(60, 137, 255)",
+              cursor:"pointer"
+              
+              }}
+          />
+          Employees</div>
        
         
       
        
      
-        <div style={{position:"relative"}}>
+       {allemployeeinfo && posArr && departmentArr && <div style={{position:"relative"}}>
          <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1}}> 
+
         <DialogDemo Open={openemployeeForm} setOpen={(e)=>e?setOpenemployeeForm(e):closeEmployeeForm()} buttontext="Add employee" contentclass="normalDialog"  btnclass = 'primarybtndiv'> 
          {(props) => (
               <Employeeform
                 {...props}
-                createNewEmployee={createNewemployee}
+                createNewEmployee={(data)=>triggerCreateEmployee(data, returnPositionid(data.data.position_name, posItems), returnDepartmentid(data.data.department_name, departItems))}
                 selectedEmployee={selectedEmployee}
-                UpdateEmployee={UpdateEmployee}
-                posItems={posAndDepartArr.posItems}
-                departItems={posAndDepartArr.DepartItems}
+                UpdateEmployee={(data)=>triggerUpdateEmployee({data, positionid: returnPositionid(data.data.position_name, posItems), departmentid:returnDepartmentid(data.data.department_name, departItems)})}
+                posItems={posItems}
+                departItems={departItems}
               />
             )}
          </DialogDemo>
@@ -498,9 +564,10 @@ const employeeFormOpen = ( employee, employeearr ) => {
          </div>
 
          
-       { tableData && <Table  data={tableData} /> }
+        <Table  data={returnTableData(allemployeeinfo, posItems, departItems)} /> 
 
-        </div>
+        </div>}
+
         </div>
         </div>
     )

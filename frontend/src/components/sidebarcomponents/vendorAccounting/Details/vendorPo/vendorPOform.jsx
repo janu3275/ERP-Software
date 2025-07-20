@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Labelwithtextarea from "../../../../../assets/formcomponents/textarea.jsx";
 
 import PoItemsComp from "./poItems/poItemsComp.jsx";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 
 const VendorPOform = ({
@@ -101,6 +102,16 @@ const VendorPOform = ({
         }}
       >
         <div className="formheading">
+        <Icon
+  icon="ion:document-outline"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(60, 137, 255)",
+    cursor:"pointer"
+    
+    }}
+/>
           {selectedVendorPO ? "Update purchase order" : "Add purchase order"}
         </div>
 

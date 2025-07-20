@@ -55,7 +55,7 @@ const ProfileImageUpload = forwardRef(({  name , value, onChange,  errors, ...re
                
                 <ProfileImage uploadedImage={value}   />
            
-    <div style={{height:"1rem"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div>}</div>
+          {errors[name] &&<div style={{height:"1rem"}}> <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div></div>}
     </div>
   
   )

@@ -1,6 +1,4 @@
-import { format } from "date-fns";
 import { forwardRef } from "react";
-import { Icon } from "@iconify/react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import 'react-day-picker/dist/style.css';
@@ -52,7 +50,7 @@ const Calendarform = forwardRef(({ label, labelclassname , disable, divclassname
     
      
     
-    <div style={{height:"1rem", display:"flex", justifyContent:"end", padding:"0px 20px"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div>}</div>
+    {errors[name] && <div style={{ display:"flex", justifyContent:"end", padding:"0px 20px"}}> <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div></div>}
     </div>
     </div>
 

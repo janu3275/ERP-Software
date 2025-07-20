@@ -33,16 +33,16 @@ const Customer = () => {
 
     const addCustomerSuccessfn = () => {    
       // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey : ['customers', returnStringifiedFilter(storeFilterData)], exact: true });
-      queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null)], exact: true });
+      queryClient.invalidateQueries({ queryKey : ['customers', returnStringifiedFilter(storeFilterData, 'customerCatalog')], exact: true });
+      queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null, 'customerCatalog')], exact: true });
       // Close the vendor form
       setOpenCustomerForm(false)
     }
 
     const updateCustomerSuccessfn = () => {
        // Invalidate or refetch the vendor list query
-       queryClient.invalidateQueries({ queryKey:['customers', returnStringifiedFilter(storeFilterData)], exact: true });
-       queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null)], exact: true });
+       queryClient.invalidateQueries({ queryKey:['customers', returnStringifiedFilter(storeFilterData, 'customerCatalog')], exact: true });
+       queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null, 'customerCatalog')], exact: true });
        setselectedCustomer(null)
        // Close the vendor form
        setOpenCustomerForm(false);
@@ -51,12 +51,12 @@ const Customer = () => {
 
     const deleteCustomerSuccessfn = () => {
       // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey:['customers', returnStringifiedFilter(storeFilterData)], exact: true });
-      queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null)], exact: true });
+      queryClient.invalidateQueries({ queryKey:['customers', returnStringifiedFilter(storeFilterData, 'customerCatalog')], exact: true });
+      queryClient.invalidateQueries({ queryKey:['panelcustomers', returnStringifiedFilter(null, 'customerCatalog')], exact: true });
     }
 
  
-    const { data , error: getCustomererr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getCustomerIsLoading } = useGetCustomers(null, returnStringifiedFilter(storeFilterData));
+    const { data , error: getCustomererr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getCustomerIsLoading } = useGetCustomers(null, returnStringifiedFilter(storeFilterData, 'customerCatalog'));
 
     const allCustomerinfo = (data?.pages ?? []).flatMap(page => page?.data ?? []);
 
@@ -216,16 +216,16 @@ const convertDataForTable = (data) => {
 
     })
 
-const rowWiseFunctions = [{funcName:'edit', funct:(Customer)=>CustomerFormOpen(Customer, Customerarr) , icon: <Icon
-    icon="mi:edit-alt"
+const rowWiseFunctions = [{funcName:'Update', funct:(Customer)=>CustomerFormOpen(Customer, Customerarr) , icon: <Icon
+    icon="mynaui:edit-one"
     style={{
       width: "1.2rem",
       height: "1.2rem",
       Customer: "#3f3f3f",
       cursor: "pointer"
     }}
-     />}, {funcName:'delete', funct:(Customer)=>triggerDeleteCustomer({ Customer, Customerarr }), icon: <Icon
-     icon="mi:edit-alt"
+     />}, {funcName:'Delete', funct:(Customer)=>triggerDeleteCustomer({ Customer, Customerarr }), icon: <Icon
+     icon="mi:delete-alt"
      style={{
      width: "1.2rem",
      height: "1.2rem",
@@ -244,7 +244,7 @@ const name = 'Customer';
 const tableRef = customerTableRef;
 
 const tableContainerStyle = {
-  height:"calc(100vh - 236px)"
+  maxHeight:"calc(100vh - 176px)"
 }
 
 const tableData = { name, groupFunctions, rowWiseFunctions, header, rows, serverSideFiltering, tableRef, tableContainerStyle }
@@ -281,7 +281,16 @@ return tableData
       <div className="infocomp">
   
      
-    <div style={{margin:0}} className="tabheading">Customer Catalog</div>
+    <div style={{margin:0}} className="tabheading"> <Icon
+            icon="bi:people"
+            style={{
+              width: "3rem",
+              height: "3rem",
+              color: "rgb(30, 171, 7)",
+              cursor:"pointer"
+              
+              }}
+          /> Customers</div>
    { allCustomerinfo && <div style={{position:"relative"}}>
      <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1}}> 
         <DialogDemo Open={openCustomerForm} setOpen={setOpenCustomerForm} buttontext="Add customer" btnclass = 'primarybtndiv'> 

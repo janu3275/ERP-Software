@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Axios } from "../../../../../../utils/axios.mjs";
 import { orderItems, paymentItems } from "../../../orders/allOrders/staticOptions";
@@ -9,48 +9,111 @@ import ViewOrder from "../../../orders/viewOrder/vieworder";
 import CustomerView from "../../../orders/allOrders/customerview/customerview";
 import Table from "../../../../commoncomponents/tableComponent/table";
 import PropTypes from "prop-types";
+import { useFilterStore } from "../../../../../../strore/notificationStore";
+
+import { useGetCustomerOrders } from "./customerQueryOrderHooks";
+import { returnStringifiedFilter } from "../../customerFilterFunctions";
+import debounce from "lodash.debounce";
 
 
 const CustomerOrder = ({ CustomerId }) => {
 
+    const storeFilterData = useFilterStore(state => state[`CustomerOrders${CustomerId}`]);
     const [openOrderForm, setOpenOrderForm] = useState(false);
-    const [CustomerOrderinfo, setCustomerOrderinfo] = useState([]);
-    const [tableData, settableData] = useState(null);
     const [selectedOrder, setselectedOrder] = useState(null);
     const [viewOrder, setviewOrder] = useState(false);
     const [openCustomerView, setOpenCustomerView] = useState(false);
     const [customerInfo, setcustomerInfo] = useState(null);
-  
+    const customerOrderTableRef = useRef(null);
+   
 
-    const returnCustomerOrder = async() => {
-      try {
-       
-        const url = `/Order/getbycustomer?customer_id=${CustomerId}`;
-        const res = await Axios.get(url)
-        if(res.data.success){
-          console.log(res.data.data)
-          let Orderarr = [...res.data.data]
-          return Orderarr
-        }
-      } catch (error) {
-        console.log(error)
+    const returnTableData = (data) => {
+
+      console.log("🚀 ~ returnTableData ~ data:", data)
+      if(!data){
+        return null
       }
 
+      const tableobj = convertDataForTable(data);
+      return { ...tableobj };
+     
     }
 
-    const setinitialData = async() => {
-       getDataAndRefreshTable()
-    }
 
-    const getDataAndRefreshTable = async() => {
+    const { data , error: getCustomerOrdererr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getCustomerOrderIsLoading } = useGetCustomerOrders( CustomerId, null, returnStringifiedFilter(storeFilterData, 'CustomerOrders'));
 
-        let Orderarr = await returnCustomerOrder()
+    const CustomerOrderinfo = (data?.pages ?? []).flatMap(page => page?.data ?? []);
+
+    
+      // Infinite scroll event handler for loading next page
+      const loadNextPage = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      };
+    
+      // Infinite scroll event handler for loading previous page
+      // const loadPreviousPage = () => {
+      //   if (hasPreviousPage && !isFetchingPreviousPage) {
+      //     fetchPreviousPage();
+      //   }
+      // };
+    
+    
+       // Attach scroll event for loading next or previous page on table scroll
+       useEffect(() => {
+        const onScroll = debounce(() => {
+          const table = customerOrderTableRef.current;
+          if (table) {
+            const { scrollTop, clientHeight, scrollHeight } = table;
+            // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+            //   loadPreviousPage();
+            // } else
+              console.log(scrollTop, clientHeight, scrollHeight)
+             if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+              loadNextPage();
+            }
+          }
+        }, 200);
+    
+        const table = customerOrderTableRef.current;
+        if (table) {
+          table.addEventListener('scroll', onScroll);
+          return () => table.removeEventListener('scroll', onScroll);
+        }
+      }, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
+   
+
+
+    // const returnCustomerOrder = async() => {
+    //   try {
+       
+    //     const url = `/Order/getbycustomer?customer_id=${CustomerId}`;
+    //     const res = await Axios.get(url)
+    //     if(res.data.success){
+    //       console.log(res.data.data)
+    //       let Orderarr = [...res.data.data]
+    //       return Orderarr
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+
+    // }
+
+    // const setinitialData = async() => {
+    //    getDataAndRefreshTable()
+    // }
+
+    // const getDataAndRefreshTable = async() => {
+
+    //     let Orderarr = await returnCustomerOrder()
       
-        setCustomerOrderinfo(Orderarr)
-        const tableobj = convertDataForTable(Orderarr);
-        settableData(tableobj)
+    //     setCustomerOrderinfo(Orderarr)
+    //     const tableobj = convertDataForTable(Orderarr);
+    //     settableData(tableobj)
 
-    }
+    // }
 
    
   
@@ -103,7 +166,7 @@ const CustomerOrder = ({ CustomerId }) => {
         "sorted":null
       }
       // { 
-      //   "columnName": "Payment status",
+      //   "columnName": "Order status",
       //   "type": "options",
       //   "colNo": 7,
       //   "width": 100,
@@ -150,7 +213,7 @@ const CustomerOrder = ({ CustomerId }) => {
             row.push({ key:'total_bill', value: returnBill(obj.product_charges ,obj.measurement_charges, obj.dilevery_charges, obj.labour_charges, obj.fitting_charges, obj.discount), type:'number', width:100, rowNo:index+1, colNo:6, id:obj.id })
          }
         //  if(obj.product_charges && obj.measurement_charges && obj.dilevery_charges && obj.labour_charges && obj.fitting_charges && obj.discount && obj.payment_info){
-        //   const payment_status = returnPaymentstatus(obj.product_charges , obj.measurement_charges , obj.dilevery_charges , obj.labour_charges , obj.fitting_charges , obj.discount , obj.payment_info)
+        //   const payment_status = returnOrderuseGetCustomerOrderstatus(obj.product_charges , obj.measurement_charges , obj.dilevery_charges , obj.labour_charges , obj.fitting_charges , obj.discount , obj.payment_info)
         //   row.push({ key:'payment_status', value: payment_status, ele: returnPaymenStatusEle(payment_status),  type:'options', width:100, rowNo:index+1, colNo:7, id:obj.id })
         //  }
         //  if(obj.payment_info){
@@ -206,16 +269,21 @@ let rowWiseFunctions = [{funcName:'Update Order', funct:(Order)=>handleOrderForm
 
 let groupFunctions = [];
 
-const name = 'Orders'
+const name = `CustomerOrders${CustomerId}`
 console.log(rowWiseFunctions)
 rowWiseFunctions = rowWiseFunctions.filter((ele)=>ele!=="")
 groupFunctions = groupFunctions.filter((ele)=>ele!=="")
-const tableData = { name, groupFunctions, rowWiseFunctions, header, rows }
+const tableRef = customerOrderTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+
+const tableData = { name, groupFunctions, rowWiseFunctions, header, rows, tableRef, tableContainerStyle };
 console.log(tableData)
 return tableData
 
-
-    }
+}
 
     const returnBill = ( product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount ) => {
       console.log(product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount)
@@ -237,10 +305,10 @@ return tableData
 
     // }
 
-    // const returnPaymentstatus = ( product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount, payments ) => {
-    //   console.log("jklhnjkl", product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount, payments)
+    // const returnOrderuseGetCustomerOrderstatus = ( product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount, OrderuseGetCustomerOrders ) => {
+    //   console.log("jklhnjkl", product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount, OrderuseGetCustomerOrders)
     //  const bill = returnBill(product_charges ,measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount)
-    //  const totalPaid = returnTotalPaid(payments)
+    //  const totalPaid = returnTotalPaid(OrderuseGetCustomerOrders)
 
     //  if( parseFloat(bill - totalPaid) <= 0 ){
     //    return 'paid'
@@ -327,9 +395,9 @@ return tableData
     }
 
     
-    useEffect(() => {
-      setinitialData()
-    },[CustomerId])
+    // useEffect(() => {
+    //   setinitialData()
+    // },[CustomerId])
 
     console.log(CustomerOrderinfo)
 
@@ -380,7 +448,7 @@ return tableData
          </div>
 
          
-       { tableData && <Table  data={tableData} /> }
+       {CustomerOrderinfo && <Table  data={returnTableData(CustomerOrderinfo)} /> }
 
         
         </div>

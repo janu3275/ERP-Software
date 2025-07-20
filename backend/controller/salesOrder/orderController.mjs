@@ -11,14 +11,6 @@ import { s3Apis } from "../awsS3Controller.mjs";
 
 dotenv.config();
 
-
-
-
-
-
-
-
-
 const orderApi = {
 
   addNewOrder: asyncHandler(async (req, res, next) => {
@@ -34,6 +26,7 @@ const orderApi = {
         name: Joi.string().required(),
         id: Joi.number().required(),
       }),
+      shipping_address: Joi.string().required(),
       measuredby: Joi.string().required(),
       products: Joi.array().items(
         Joi.object({
@@ -111,6 +104,7 @@ const orderApi = {
           body.date,
           body.completionDate,
           body.measuredby,
+          body.shipping_address,
           body.payment.productCharge,
           body.payment.MeasurementCharge,
           body.payment.DileveryCharge,
@@ -479,6 +473,7 @@ const orderApi = {
         name: Joi.string().required(),
         id: Joi.number().required(),
       }),
+      shipping_address: Joi.string().required()
     });
 
     let body = req.body;
@@ -500,9 +495,10 @@ const orderApi = {
       SET
         completion_date = $1,
         measuredby = $2,
-        customer_id = $3
+        customer_id = $3,
+        shipping_address = $4
       WHERE
-        id = $4
+        id = $5
         returning *;`;
 
     try {
@@ -511,6 +507,7 @@ const orderApi = {
           body.completionDate,
           body.measuredby,
           body.customer.id,
+          body.shipping_address,
           body.orderid
         ])
       ).rows[0];
@@ -1213,12 +1210,17 @@ const orderApi = {
     const market_id = req.market.market_id;
     const schema = Joi.object({
       market_id: Joi.number().integer().required(),
-      status: Joi.string().required()
+      status: Joi.string().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
   
 
     let body = {
       ...req.query,
+      ...req.body,
       market_id
     };
 
@@ -1235,28 +1237,61 @@ const orderApi = {
       });
     }
 
+    const { previousCursor, nextCursor } = value
+
     // PROCEEDING TOWARDS GETTING ALL ORDERS ---------
 
     try {
 
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.market_id,
+        value.status,
+        filters.order_number || null,
+        filters.customer_name || null,
+        filters.order_date.minValue || null,
+        filters.order_date.maxValue || null,
+        filters.completion_date.minValue || null,
+        filters.completion_date.maxValue || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        limit
+      ]
+
+      console.log("jklhkj")
+
       const allorderinfo = (
-        await queryDB(orderQueries.getAllOrderByOrderStatusqry, [body.market_id, body.status])
+        await queryDB(orderQueries.getFilteredOrderByStatusqry(previousCursor, nextCursor), queryParams)
       ).rows;
+
+      console.log("jkkj")
 
       console.log(allorderinfo)
 
       if (allorderinfo) {
+
+        const nextCursor = allorderinfo[allorderinfo.length - 1]?.id || null;
+        const previousCursor = allorderinfo[0]?.id || null;
+
         res.status(200).json({
           success: true,
           message: "request successfully",
           data: allorderinfo,
+          nextCursor: allorderinfo.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allorderinfo.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
+
         res.status(200).json({
           success: false,
           message: "problem in getting Service",
           data: allorderinfo,
+          nextCursor: null, 
+          previousCursor: null
         });
+
       }
       
     } catch (error) {
@@ -1264,6 +1299,7 @@ const orderApi = {
         .status(200)
         .json({ success: false, message: "updating error", error: error });
     }
+
   }),
 
   getOrdersByCustomer: asyncHandler(async (req, res, next) => {
@@ -1272,11 +1308,16 @@ const orderApi = {
     const schema = Joi.object({
       market_id: Joi.number().integer().required(),
       customer_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
   
 
     let body = {
-      ...req.query,
+      ...req.params,
+      ...req.body,
       market_id
     };
 
@@ -1293,28 +1334,60 @@ const orderApi = {
       });
     }
 
+    const { previousCursor, nextCursor } = value
+
+
+
     // PROCEEDING TOWARDS GETTING ALL ORDERS ---------
 
     try {
 
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.market_id,
+        value.customer_id,
+        filters.order_number || null,
+        filters.order_status || null,
+        filters.customer_name || null,
+        filters.order_date.minValue || null,
+        filters.order_date.maxValue || null,
+        filters.completion_date.minValue || null,
+        filters.completion_date.maxValue || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        limit
+      ]
+
       const allorderinfo = (
-        await queryDB(orderQueries.getAllOrderByCustomerqry, [body.market_id, body.customer_id])
+        await queryDB(orderQueries.getAllOrderByCustomerqry(previousCursor, nextCursor), queryParams)
       ).rows;
 
       console.log(allorderinfo)
 
       if (allorderinfo) {
+
+        const nextCursor = allorderinfo[allorderinfo.length - 1]?.id || null;
+        const previousCursor = allorderinfo[0]?.id || null;
+
         res.status(200).json({
           success: true,
           message: "request successfully",
           data: allorderinfo,
+          nextCursor: allorderinfo.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allorderinfo.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
+
         res.status(200).json({
           success: false,
           message: "problem in getting Service",
           data: allorderinfo,
+          nextCursor: null, 
+          previousCursor: null
         });
+
       }
       
     } catch (error) {
@@ -1558,12 +1631,17 @@ const orderApi = {
     // BODY VALIDATION
     const market_id = req.market.market_id;
     const schema = Joi.object({
-      market_id: Joi.number().integer().required()
+      market_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
   
 
     let body = {
       ...req.query,
+      ...req.body,
       market_id
     };
 
@@ -1580,27 +1658,54 @@ const orderApi = {
       });
     }
 
+    const { previousCursor, nextCursor } = value
+
     // PROCEEDING TOWARDS GETTING ALL ORDERS ---------
 
     try {
 
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.market_id,
+        filters.order_number || null,
+        filters.customer_name || null,
+        filters.order_date.minValue || null,
+        filters.order_date.maxValue || null,
+        filters.completion_date.minValue || null,
+        filters.completion_date.maxValue || null,
+        filters.order_status || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        limit
+      ]
+
       const allorderinfo = (
-        await queryDB(orderQueries.getAllOrdersqry, [body.market_id])
+        await queryDB(orderQueries.getFilteredAllOrderqry(previousCursor, nextCursor), queryParams)
       ).rows;
 
       console.log(allorderinfo)
 
       if (allorderinfo) {
+
+        const nextCursor = allorderinfo[allorderinfo.length - 1]?.id || null;
+        const previousCursor = allorderinfo[0]?.id || null;
+
         res.status(200).json({
           success: true,
           message: "request successfully",
           data: allorderinfo,
+          nextCursor: allorderinfo.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allorderinfo.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
         res.status(200).json({
           success: false,
           message: "problem in getting Service",
           data: allorderinfo,
+          nextCursor: null, 
+          previousCursor: null
         });
       }
       
@@ -1615,12 +1720,16 @@ const orderApi = {
     // BODY VALIDATION
     const market_id = req.market.market_id;
     const schema = Joi.object({
-      market_id: Joi.number().integer().required()
+      market_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
     });
   
 
     let body = {
-      ...req.query,
+      ...req.body,
       market_id
     };
 
@@ -1637,28 +1746,77 @@ const orderApi = {
       });
     }
 
+    const { previousCursor, nextCursor } = value
     // PROCEEDING TOWARDS GETTING ALL ORDERS ---------
 
     try {
 
+
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.market_id,
+        filters.customer_name || null,
+        filters.mobile_number || null,
+        filters.whatsapp_number || null,
+        filters.payment_status || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        filters.total_paid.minValue || null,
+        filters.total_paid.maxValue || null,
+        filters.outstanding.minValue || null,
+        filters.outstanding.maxValue || null,
+        limit
+      ]
+
+      const summaryQryParams = [
+        value.market_id,
+        filters.customer_name || null,
+        filters.mobile_number || null,
+        filters.whatsapp_number || null,
+        filters.payment_status || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        filters.total_paid.minValue || null,
+        filters.total_paid.maxValue || null,
+        filters.outstanding.minValue || null,
+        filters.outstanding.maxValue || null
+      ]
+
       const allorderinfo = (
-        await queryDB(orderQueries.getAllCustomerSummary, [body.market_id])
+        await queryDB(orderQueries.getAllCustomerSummaryFiltered(previousCursor, nextCursor), queryParams)
       ).rows;
+
+      const summary = (await queryDB(orderQueries.getAllCustomerSummaryFiltered_Summary, summaryQryParams)).rows[0]|| null;
 
       console.log(allorderinfo)
 
       if (allorderinfo) {
+
+        const nextCursor = allorderinfo[allorderinfo.length - 1].id;
+        const previousCursor = allorderinfo[0].id;
+
         res.status(200).json({
           success: true,
           message: "request successfully",
           data: allorderinfo,
+          summary: summary,
+          nextCursor: allorderinfo.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allorderinfo.length === limit ? previousCursor : null, // Indicate if there are previous results
         });
+
       } else {
+
         res.status(200).json({
           success: false,
           message: "problem in getting Service",
           data: allorderinfo,
+          summary: null,
+          nextCursor: null, 
+          previousCursor: null
+          
         });
+
       }
       
     } catch (error) {
@@ -1769,9 +1927,10 @@ function convertData(data) {
     date: date.toISOString().split("T")[0],
     customer: {
       name: customerName,
-      id: orderInfo.customer_id,
+      id: orderInfo.customer_id
     },
     measuredby: orderInfo.measuredby,
+    shipping_address: orderInfo.shipping_address,
     completionDate: completionDate.toISOString().split("T")[0],
     products: newproducts,
     payment: {

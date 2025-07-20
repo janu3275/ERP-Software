@@ -11,6 +11,8 @@ import Labelwithtextarea from '../../../../../assets/formcomponents/textarea.jsx
 import Calendarform from '../../../../../assets/formcomponents/calender/calender.jsx';
 import ImageUpload from '../../../../../assets/formcomponents/imageUpload/imageUpload.jsx';
 import BillItemsComp from './billItems/billItems.jsx';
+import { Icon } from '@iconify/react/dist/iconify.js';
+
 
 
 
@@ -118,8 +120,17 @@ console.log(errors, product_type, selectedVendorBill)
   return (
     
     <form className='formclass' onSubmit={handleSubmit(data=>selectedVendorBill?UpdateVendorBill({data, Billid:`${selectedVendorBill.id}`}):createNewVendorBill(data))}>
-       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px"}}>
-        <div className='formheading'>{selectedVendorBill?'Update bill': 'Add bill'}</div>
+       <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px", gap:"10px"}}>
+        <div className='formheading'><Icon
+  icon="basil:document-outline"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(185, 7, 7)",
+    cursor:"pointer"
+    
+    }}
+/>{selectedVendorBill?'Update bill': 'Add bill'}</div>
      <div style={{display:"flex", gap:"20px"}}>
           <Labelwithtextfield
             register={register}

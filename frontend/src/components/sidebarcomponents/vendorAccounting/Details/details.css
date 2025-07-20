@@ -16,7 +16,9 @@
   top: 0;
   background: white;
   z-index: 2;
-  margin-left: 20px;
+  margin: 0px 60px;
+  margin-bottom: 40px;
+  /* min-width: 1104px; */
 }
 
 .tabletabbtn{
@@ -64,7 +66,7 @@
   }
 
   .vendorinfocomp{
-    padding: 40px 0px;
+    /* padding: 40px 0px; */
     max-width: 80%;
     margin: auto;
   }
@@ -72,21 +74,27 @@
   .tabheading{
     width: 732px;
     font-size: xx-large;
-    padding-bottom: 20px;
+    /* padding-bottom: 20px; */
     font-weight: 600;
     color: #000000;
     /* border-bottom: 1px solid rgb(233, 233, 231); */
     margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .billtabheading{
    
     font-size: xx-large;
-    padding-bottom: 20px;
+    /* padding-bottom: 20px; */
     font-weight: 600;
     color: #000000;
     /* border-bottom: 1px solid rgb(233, 233, 231); */
     margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .primarybtn{

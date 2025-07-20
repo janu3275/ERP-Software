@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import './accordion.css';
 
 const AccordionDemo = ({items}) => (
-  <Accordion.Root className="AccordionRoot" type="single" defaultValue="item-1" collapsible>
+  <Accordion.Root className="AccordionRoot" type="single"  collapsible defaultChecked={false}>
    {items.map((item, index)=> 
    <Accordion.Item key={index} className="AccordionItem" value="item-1">
       <AccordionTrigger >{item.trigger}</AccordionTrigger>

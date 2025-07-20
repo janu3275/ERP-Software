@@ -1,13 +1,20 @@
-export const returnStringifiedFilter = (filters) => {
-    let finalfilter = returnFinalFilters(filters)
+export const returnStringifiedFilter = (filters, component) => {
+    let finalfilter = returnFinalFilters(filters, component)
     return JSON.stringify(finalfilter)
   }
 
 
-  const returnFinalFilters = (filters) => {
-   
+  const returnFinalFilters = (filters, component) => {
+    let finalfilter = {}
 
-   const finalfilter = {
+  if(component==='CustomerPayments'){
+    finalfilter = {
+      payment_date: returnFilterValue(0, filters, 'date'),
+      amount: returnFilterValue(2, filters, 'number'),
+      description: returnFilterValue(4, filters, 'string'),
+     }
+  }else if(component === 'customerCatalog'){
+    finalfilter = {
       name: returnFilterValue(0, filters, 'string'),
       mobile_number: returnFilterValue(1, filters, 'string'),
       whatsapp_number: returnFilterValue(2, filters, 'string'),
@@ -18,6 +25,31 @@ export const returnStringifiedFilter = (filters) => {
       adhaar_number: returnFilterValue(7, filters, 'string'),
       note: returnFilterValue(8, filters, 'string')
     }
+  }else if(component==='CustomerOrders'){
+    finalfilter = {
+
+      order_number: returnFilterValue(0, filters, 'string'),
+      order_status: returnFilterValue(1, filters, 'options'),
+      customer_name: returnFilterValue(2, filters, 'string'),
+      order_date: returnFilterValue(3, filters, 'date'),
+      completion_date: returnFilterValue(4, filters, 'date'),
+      total_bill: returnFilterValue(5, filters, 'number')
+     
+     }
+
+  }else if(component==='CustomerSummary'){
+    finalfilter = {
+
+      customer_name: returnFilterValue(0, filters, 'string'),
+      mobile_number: returnFilterValue(1, filters, 'string'),
+      whatsapp_number: returnFilterValue(2, filters, 'string'),
+      payment_status: returnFilterValue(3, filters, 'options'),
+      total_bill: returnFilterValue(4, filters, 'number'),
+      total_paid: returnFilterValue(5, filters, 'number'),
+      outstanding: returnFilterValue(5, filters, 'number')
+     
+     }
+  }
 
     console.log( filters, finalfilter )
     return finalfilter;

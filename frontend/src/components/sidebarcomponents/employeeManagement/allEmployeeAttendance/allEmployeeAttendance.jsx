@@ -4,6 +4,7 @@ import { Axios } from "../../../../../utils/axios.mjs";
 import CustomCalendar from "../../../../assets/singlecomponents/customCalender/customCalender";
 import DialogDemo from "../../../../assets/singlecomponents/dialog/dialog";
 import TakeAttendance from "./takeAttendance";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 
 const AllEmployeeAttendance = () => {
@@ -78,8 +79,19 @@ const AllEmployeeAttendance = () => {
 
         <div className="detailoutercomp">
         <div className="infocomp">
-        <div className="tabheading" style={{width:"370px"}}>Attendance</div>
-        <div style={{display:"flex", justifyContent:"center"}}>
+        <div className="tabheading" style={{width:"370px"}}>
+        <Icon
+            icon="pepicons-pencil:raise-hand"
+            style={{
+              width: "3.5rem",
+              height: "3.5rem",
+              color: "rgb(30, 171, 7)",
+              cursor:"pointer"
+              
+              }}
+          />
+          Attendance</div>
+        <div style={{display:"flex", justifyContent:"center", margin:"auto", marginTop:"40px"}}>
         <CustomCalendar onMonthOrYearChange={RefreshData} onDateClick={choooseDate} datesinfo={datesinfo} />
         </div>
         <DialogDemo Open={openAttendanceForm} setOpen={setOpenAttendanceForm} buttontext="" contentclass="normalDialog"  btnclass = 'primarybtndiv'> 

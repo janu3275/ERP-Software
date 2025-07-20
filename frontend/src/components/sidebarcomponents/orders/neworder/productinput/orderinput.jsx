@@ -4,7 +4,7 @@ import SelectDemo from "../../../../../assets/singlecomponents/select/select.jsx
 import PropTypes from "prop-types";
 import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
-import { generateRandomId, returnBase64OrBinaryfromfile, returnValue, returnid } from "../../../../../commonfn.jsx";
+import { generateRandomId, returnBase64OrBinaryfromfile, returnOtherEle, returnValue, returnid } from "../../../../../commonfn.jsx";
 import { Axios } from "../../../../../../utils/axios.mjs";
 import * as yup from "yup";
 import ImageDiv from "../../../../../assets/singlecomponents/imagecomponent/imagecomponent.jsx";
@@ -25,17 +25,17 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
 
     sizearr: [
       {
-        length: "",
+        length: 0,
 
-        width: "",
+        width: 0,
 
-        area: "",
+        area: 0,
 
-        quantity: "",
+        quantity: 0,
 
         charge: "",
 
-        total: "",
+        total: 0,
 
         images: [],
       },
@@ -67,7 +67,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
         let arr = [...res.data.data];
         let newarr = arr.map((item) => {
           return {
-            label: `${item['thickness']}mm ${item['color']} ${item['glass_type']} ${item['glass_company']} - glass`,
+            label: returnOtherEle(`${item['thickness']}mm ${item['color']} ${item['glass_type']} ${item['glass_company']} - glass`),
             value: `${item['thickness']}mm ${item['color']} ${item['glass_type']} ${item['glass_company']} - glass`,
             id: item.id
           };
@@ -125,7 +125,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
         let arr = [...res.data.data];
         let newarr = arr.map((item) => {
           return {
-            label: item.name,
+            label: returnOtherEle(item.name),
             value: item.name,
             id: item.id
           };
@@ -147,11 +147,11 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
 
   const addsize = () => {
     let sizeobj = {
-      length: "",
-      width: "",
-      area: "",
-      quantity: "",
-      total: "",
+      length: 0,
+      width: 0,
+      area: 0,
+      quantity: 0,
+      total: 0,
       images: []
 
     };
@@ -177,9 +177,9 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
     let accessoryobj = {
       accessory_id: null,
 
-      quantity: "",
+      quantity: 0,
 
-      total: "",
+      total: 0,
     };
 
     setcurrentinput((prev) => {
@@ -208,19 +208,51 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
       servicearr: yup.array(),
       sizearr: yup.array().of(
         yup.object().shape({
-          length: yup.string().required("required field"),
-          width: yup.string().required("required field"),
-          area: yup.string().required("required field"),
-          quantity: yup.string().required("required field"),
-          charge: yup.string().required("required field"),
-          total: yup.string().required("required field"),
+          length: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+        width: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+        area: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+        quantity: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+        charge: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+        total: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
         })
       ),
       accessoryarr: yup.array().of(
         yup.object().shape({
           accessory_id: yup.number().required("Please choose  accessory"),
-          quantity: yup.string().required("required field"),
-          total: yup.string().required("required field"),
+          quantity: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
+          total: yup
+          .number()
+          .typeError('Must be a number')
+          .required('Required field')
+          .min(1, 'Must be greater than 0'),
         })
       ),
     });
@@ -261,11 +293,13 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               (returnProductCharge(product_id) +
                 returnServiceCharge(prev.servicearr)) *
                 (parseInt(obj.length) * parseInt(obj.width)) *
-                obj.quantity || "",
+                obj.quantity || 0,
           };
         }),
       };
     });
+
+
   };
 
   const handleServiceFieldChange = ( e , service_id ) => {
@@ -291,7 +325,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
                 (returnProductCharge(prev.product_id) +
                   returnServiceCharge(prev.servicearr)) *
                   (parseInt(obj.length) * parseInt(obj.width)) *
-                  obj.quantity || "",
+                  obj.quantity || 0,
             };
           }),
         };
@@ -317,7 +351,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               (returnProductCharge(prev.product_id) +
                 returnServiceCharge(newservicearr)) *
                 (parseInt(obj.length) * parseInt(obj.width)) *
-                obj.quantity || "",
+                obj.quantity || 0,
           };
         }),
       };
@@ -342,7 +376,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               area:
                 parseInt(name === "length" ? e.target.value : size.length) *
                   parseInt(name === "width" ? e.target.value : size.width) ||
-                "",
+                0,
               charge:
                 returnProductCharge(prev.product_id) +
                 returnServiceCharge(prev.servicearr),
@@ -351,7 +385,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
                   returnServiceCharge(prev.servicearr)) *
                   parseInt(name === "length" ? e.target.value : size.length) *
                   parseInt(name === "width" ? e.target.value : size.width) *
-                  (name === "quantity" ? e.target.value : size.quantity) || "",
+                  (name === "quantity" ? e.target.value : size.quantity) || 0,
             };
           }
           return size;
@@ -374,7 +408,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               total:
                 returnAccessoryCharge(
                   name === "accessory_id" ? returnid(e, allAccessories) : acc.accessory_id
-                ) * (name === "quantity" ? e.target.value : acc.quantity) || "",
+                ) * (name === "quantity" ? e.target.value : acc.quantity) || 0,
             };
           }
           return acc;
@@ -494,13 +528,14 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
   console.log(currentinput, allServices);
   return (
     <>
-      <div style={{ gap: "20px", flexDirection: "column", display: "flex" }}>
+      <div style={{ gap: "20px", flexDirection: "column", display: "flex", width:"-webkit-fill-available", padding:"0px 20px", maxWidth:"1000px", margin:"auto" }}>
        
 
           <SelectDemo
             placeholder="Choose product"
-            divclassname="shorizontal"
+            divclassname="vertical"
             triggerclassname="producttrigger"
+            labelclassname="primaryformsectiontitle2"
             groups={allProducts}
             label="Product"
             onChange={handleProductfieldchange}
@@ -511,8 +546,8 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
           />
 
         
-          <div style={{paddingLeft:"20px", display:"flex", gap:"20px", color:"rgb(55, 53, 47)"}}>
-          <div>Service</div>
+          <div style={{ display:"flex", color:"rgb(55, 53, 47)", flexDirection:"column"}}>
+          <div className="primaryformsectiontitle" style={{ marginBottom:"10px", paddingBottom:"10px", borderBottom:"1px solid rgba(55, 53, 47, 0.09)"}}>Services</div>
           <div style={{display:"flex", alignItems:"center", gap:"20px"}}>
           {allServices[0]?.items?.map((service, index)=>
           <div style={{display:"flex", alignItems:"center", gap:"5px"}} key={index}>
@@ -530,7 +565,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              padding: "0px 20px",
+      
               alignItems:"center"
             }}
           >
@@ -550,20 +585,20 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               Add size
             </button>
           </div>
-          <div style={{ display: "flex", padding: "10px 20px", color:"rgb(55, 53, 47)" }}>
-            <div style={{ width: "123.6px" }}>Length</div>
-            <div style={{ width: "123.6px" }}>Width</div>
-            <div style={{ width: "123.6px" }}>Area</div>
-            <div style={{ width: "123.6px" }}>Quantity</div>
-            <div style={{ width: "123.6px" }}>Charge</div>
-            <div style={{ width: "123.6px" }}>Total</div>
+          <div style={{ display: "flex", padding: "10px 0px", color:"rgb(55, 53, 47)", gap:"20px", paddingBottom:"5px" }}>
+            <div style={{ width: "100px" }}>Length</div>
+            <div style={{ width: "100px" }}>Width</div>
+            <div style={{ width: "100px" }}>Area</div>
+            <div style={{ width: "100px" }}>Quantity</div>
+            <div style={{ width: "100px" }}>Charge</div>
+            <div style={{ width: "100px" }}>Total</div>
           </div>
           {currentinput.sizearr.map((size, index) => (
             <div
               key={index}
               style={{
                 display: "flex",
-                padding: "0px 20px",
+                padding: "0px 0px",
                 marginBottom: "10px",
                 flexDirection: "column",
               }}
@@ -572,6 +607,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
                 style={{
                   display: "flex",
                   marginBottom: "10px",
+                  gap:"20px"
                 }}
               >
                 <Stextfield
@@ -734,7 +770,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              padding: "0px 20px",
+              padding: "0px 0px",
               alignItems:"center"
             }}
           >
@@ -754,17 +790,18 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
               Add accessory
             </button>
           </div>
-          <div style={{ display: "flex", padding: "10px 20px", color:"rgb(55, 53, 47)" }}>
-            <div style={{ width: "20%" }}>Accessory</div>
-            <div style={{ width: "13.6%" }}>Quantity</div>
-            <div style={{ width: "18%" }}>Total</div>
+          <div style={{ display: "flex", padding: "10px 0px", color:"rgb(55, 53, 47)", gap:"20px", paddingBottom:"5px" }}>
+            <div style={{ width: "170px" }}>Accessory</div>
+            <div style={{ width: "100px" }}>Quantity</div>
+            <div style={{ width: "100px" }}>Total</div>
           </div>
           {currentinput.accessoryarr.map((accessory, index) => (
             <div
               style={{
                 display: "flex",
-                padding: "0px 20px",
+                padding: "0px 0px",
                 marginBottom: "10px",
+                gap:"20px"
               }}
               key={index}
             >
@@ -838,6 +875,7 @@ const Orderinput = ({ selectedobj, additem, updateitem }) => {
       >
         <button
           onClick={() => {
+          
             selectedobj
               ? updateitem(currentinput.id, currentinput)
               : additem(currentinput);

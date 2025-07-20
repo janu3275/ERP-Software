@@ -8,9 +8,11 @@ const Orderform = ({ selectedobj, additem, updateitem }) => {
       <div style={{marginBottom:"80px"}}>
         <div
           style={{
-           marginLeft:"20px",
-           marginBottom:"30px",
+          
            fontSize:"19px",
+           maxWidth:"1000px",
+           margin:"auto",
+           marginBottom:"40px",
            
           }}
           className="primaryformsectiontitle"

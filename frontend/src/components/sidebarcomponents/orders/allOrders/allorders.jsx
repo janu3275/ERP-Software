@@ -1,56 +1,156 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import "./allorders.css";
 import NewOrder from "../neworder/neworder";
 import CustomerView from "./customerview/customerview";
-import { paymentItems} from "./staticOptions";
 import ViewOrder from "../viewOrder/vieworder";
+import { PDFViewer } from '@react-pdf/renderer';
 import PropTypes from "prop-types";
 import { Axios } from "../../../../../utils/axios.mjs";
 import DialogDemo from "../../../../assets/singlecomponents/dialog/dialog";
 import Table from "../../../commoncomponents/tableComponent/table";
-import { returnConvertedDate, returnPaymenStatusEle, sendWhatsappMessageForOrdeDilevered, sendWhatsappMessageForOrderConfirmation } from "../../../../commonfn";
+import { removeSpaces, returnConvertedDate, returnPaymenStatusEle, sendWhatsappMessageForOrdeDilevered, sendWhatsappMessageForOrderConfirmation } from "../../../../commonfn";
+import { useCommonInfoStore, useFilterStore } from "../../../../../strore/notificationStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { returnOrderStringifiedFilter } from "../orderfilterFunctions";
+import { useAddOrder, useDeleteAllOrder, useDeleteOrder, useGetOrders, useUpdateOrder, useUpdateOrderStatus } from "./orderQueryHooks";
+import debounce from "lodash.debounce";
+import TaskPDF from "../taskmanager/taskpdf";
+import InvoicePDF from "../invoicePDF/invoicepdf";
 
 
 const AllOrder = ({status}) => {
 
+    const storeFilterData = useFilterStore(state => state[`Order${removeSpaces(status)}`]);
+    const company = useCommonInfoStore(state=>state.company);
     const [openOrderForm, setOpenOrderForm] = useState(false);
-    const [allOrderinfo, setallOrderinfo] = useState([]);
-    const [tableData, settableData] = useState(null);
     const [selectedOrder, setselectedOrder] = useState(null);
     const [viewOrder, setviewOrder] = useState(false);
     const [openCustomerView, setOpenCustomerView] = useState(false);
+    const [openTaskView, setOpenTaskView] = useState(false);
+    const [openInvoiceView, setOpenInvoiceView] = useState(false);
     const [customerInfo, setcustomerInfo] = useState(null);
-  
+    const OrderTableRef = useRef(null);
+    const queryClient = useQueryClient();
 
-    const returnAllOrder = async() => {
-      try {
-       
-        const url = `/Order/getall?status=${status}`;
-        const res = await Axios.get(url)
-        if(res.data.success){
-          console.log(res.data.data)
-          let Orderarr = [...res.data.data]
-          return Orderarr
-        }
-      } catch (error) {
-        console.log(error)
+    const returnTableData = (data) => {
+
+      console.log("🚀 ~ returnTableData ~ data:", data)
+
+      if(!data){
+        return null
       }
+
+      const tableobj = convertDataForTable(data);
+
+      return { ...tableobj };
+     
     }
 
-    const setinitialData = async() => {
-       getDataAndRefreshTable()
-    }
+   
 
-    const getDataAndRefreshTable = async() => {
+   const UpdateOrderStatusSuccessfn = () => {
+   console.log("order status updated")
+   queryClient.invalidateQueries({ queryKey:[`Orders-${status}`, returnOrderStringifiedFilter(storeFilterData, 'Order')], exact: true });
+   queryClient.invalidateQueries({ queryKey:[`Orders-all`, returnOrderStringifiedFilter(storeFilterData, 'OrderAll')], exact: true });
+   }
 
-        let Orderarr = await returnAllOrder()
+    const deleteOrderSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey:[`Orders-${status}`, returnOrderStringifiedFilter(storeFilterData, 'Order')], exact: true });
+      queryClient.invalidateQueries({ queryKey:[`Orders-all`, returnOrderStringifiedFilter(storeFilterData, 'OrderAll')], exact: true });
       
-        setallOrderinfo(Orderarr)
-        const tableobj = convertDataForTable(Orderarr);
-        settableData(tableobj)
-
     }
+
+    const deleteAllOrderSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey:[`Orders-${status}`, returnOrderStringifiedFilter(storeFilterData, 'Order')], exact: true });
+      queryClient.invalidateQueries({ queryKey:[`Orders-all`, returnOrderStringifiedFilter(storeFilterData, 'OrderAll')], exact: true });
+      
+    }
+
+ 
+    const { data, error: getOrdererr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getOrderIsLoading } = useGetOrders(null, returnOrderStringifiedFilter(storeFilterData, 'Order'), status);
+
+    const allOrderinfo = (data?.pages ?? []).flatMap(page => page?.data ?? []);
+
+    const { mutate: triggerUpdateOrderStatus , error: updateOrderStatuserr, isLoading: updateOrderStatusIsLoading } = useUpdateOrderStatus(UpdateOrderStatusSuccessfn);
+    
+    const { mutate: triggerDeleteOrder , error: deleteOrdererr, isLoading: deleteOrderIsLoading } = useDeleteOrder(deleteOrderSuccessfn);
+
+    const { mutate: triggerDeleteAllOrder , error: deleteAllOrdererr, isLoading: deleteAllOrderIsLoading } = useDeleteAllOrder(deleteAllOrderSuccessfn);
+
+
+    // const returnAllOrder = async() => {
+
+    //   try {
+       
+    //     const url = `/Order/getall?status=${status}`;
+    //     const res = await Axios.get(url)
+
+    //     if(res.data.success){
+    //       console.log(res.data.data)
+    //       let Orderarr = [...res.data.data]
+    //       return Orderarr
+    //     }
+
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+
+    // }
+
+    // const setinitialData = async() => {
+    //    getDataAndRefreshTable()
+    // }
+
+    // const getDataAndRefreshTable = async() => {
+
+    //     let Orderarr = await returnAllOrder()
+      
+    //     setallOrderinfo(Orderarr)
+
+    //     const tableobj = convertDataForTable(Orderarr);
+    //     settableData(tableobj)
+
+    // }
+
+       // Infinite scroll event handler for loading next page
+       const loadNextPage = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      };
+    
+      // Infinite scroll event handler for loading previous page
+      // const loadPreviousPage = () => {
+      //   if (hasPreviousPage && !isFetchingPreviousPage) {
+      //     fetchPreviousPage();
+      //   }
+      // };
+    
+       // Attach scroll event for loading next or previous page on table scroll
+       useEffect(() => {
+        const onScroll = debounce(() => {
+          const table = OrderTableRef.current;
+          if (table) {
+            const { scrollTop, clientHeight, scrollHeight } = table;
+            // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+            //   loadPreviousPage();
+            // } else
+              console.log(scrollTop, clientHeight, scrollHeight)
+             if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+              loadNextPage();
+            }
+          }
+        }, 200);
+    
+        const table = OrderTableRef.current;
+        if (table) {
+          table.addEventListener('scroll', onScroll);
+          return () => table.removeEventListener('scroll', onScroll);
+        }
+      }, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
 
    
   
@@ -161,7 +261,7 @@ const AllOrder = ({status}) => {
 
 let rowWiseFunctions = [
 
-  (status === 'Not yet started' || status === 'hold' || status === 'removed') ? {funcName:'Start Order', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'In process', Order, Orderarr), icon: <Icon
+  (status === 'Not yet started' || status === 'hold' || status === 'removed') ? {funcName:'Start Order', funct:(Order)=>triggerUpdateOrderStatus({ orderid: Order[0]?.id, status: 'In process', Order, Orderarr}), icon: <Icon
    icon="gis:flag-start-b"
    style={{
    width: "1.2rem",
@@ -171,7 +271,7 @@ let rowWiseFunctions = [
   }}
   />}:"",
 
-  status === 'In process' || status === 'hold' || status === 'removed' ? {funcName:'Order completed', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'completed', Order, Orderarr), icon: <Icon
+  status === 'In process' || status === 'hold' || status === 'removed' ? {funcName:'Order completed', funct:(Order)=>triggerUpdateOrderStatus({orderid: Order[0]?.id, status: 'completed', Order, Orderarr}), icon: <Icon
    icon="fluent-mdl2:completed"
    style={{
    width: "1.2rem",
@@ -181,7 +281,7 @@ let rowWiseFunctions = [
   }}
   />}:"",
 
-  status === 'completed' || status === 'hold' || status === 'removed' ? {funcName:'Send order for dilevery', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'sent for dilevery', Order, Orderarr), icon: <Icon
+  status === 'completed' || status === 'hold' || status === 'removed' ? {funcName:'Send order for dilevery', funct:(Order)=>triggerUpdateOrderStatus({orderid: Order[0]?.id, status: 'sent for dilevery', Order, Orderarr}), icon: <Icon
    icon="carbon:delivery-truck"
    style={{
    width: "1.2rem",
@@ -191,7 +291,7 @@ let rowWiseFunctions = [
   }}
   />}:"",
 
-  status === 'sent for dilevery' || status === 'hold' || status === 'removed' ? {funcName:'Order dilevered', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'dilevered', Order, Orderarr), icon: <Icon
+  status === 'sent for dilevery' || status === 'hold' || status === 'removed' ? {funcName:'Order dilevered', funct:(Order)=>triggerUpdateOrderStatus({orderid: Order[0]?.id, status: 'dilevered', Order, Orderarr}), icon: <Icon
    icon="ep:finished"
    style={{
    width: "1.2rem",
@@ -201,7 +301,7 @@ let rowWiseFunctions = [
   }}
   />}:"",
 
-  status !== 'hold' ? {funcName:'Hold order', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'hold', Order, Orderarr), icon: <Icon
+  status !== 'hold' ? {funcName:'Hold order', funct:(Order)=>triggerUpdateOrderStatus({orderid: Order[0]?.id, status: 'hold', Order, Orderarr}), icon: <Icon
    icon="icon-park-outline:pause-one"
    style={{
    width: "1.2rem",
@@ -211,7 +311,7 @@ let rowWiseFunctions = [
   }}
   />}:"",
 
-  status !== 'removed' ? {funcName:'Remove Order', funct:(Order)=>updateOrderStatus(Order[0]?.id, 'removed', Order, Orderarr), icon: <Icon
+  status !== 'removed' ? {funcName:'Remove Order', funct:(Order)=>triggerUpdateOrderStatus({orderid: Order[0]?.id, status: 'removed', Order, Orderarr}), icon: <Icon
   icon="gg:remove"
   style={{
   width: "1.2rem",
@@ -221,7 +321,7 @@ let rowWiseFunctions = [
  }}
  />}:"",
 
- status === 'removed' ? {funcName:'Delete Order', funct:(Order)=>DeleteOrder(Order, Orderarr), icon: <Icon
+ status === 'removed' ? {funcName:'Delete Order', funct:(Order)=>triggerDeleteOrder({Order, Orderarr}), icon: <Icon
  icon="mi:edit-alt"
  style={{
  width: "1.2rem",
@@ -253,6 +353,7 @@ let rowWiseFunctions = [
 
   />},
 
+
   {funcName:'View customer details', funct:(Order)=>viewCustomerDetails(Order, Orderarr), icon: <Icon
    icon="fluent-mdl2:full-view"
    style={{
@@ -263,12 +364,36 @@ let rowWiseFunctions = [
   }}
   />},
 
+  {funcName:'View task plan', funct:(Order)=>handleOrderFormOpen(Order[0]?.id, 'task'), icon: <Icon
+    icon="fluent-mdl2:full-view"
+    style={{
+    width: "1.2rem",
+    height: "1.2rem",
+    color: "#3f3f3f",
+    cursor: "pointer",
+   }}
+
+  />},
+
+  // {funcName:'View Invoice', funct:(Order)=>handleOrderFormOpen(Order[0]?.id, 'invoice'), icon: <Icon
+  //   icon="fluent-mdl2:full-view"
+  //   style={{
+  //   width: "1.2rem",
+  //   height: "1.2rem",
+  //   color: "#3f3f3f",
+  //   cursor: "pointer"
+  //  }}
+
+  // />}
+
+
+
   
 
 ]
 
 
-let groupFunctions = [ status === 'removed' ? {funcName:'Delete all', funct:(OrderArr)=>DeleteAll(OrderArr), icon: <Icon
+let groupFunctions = [ status === 'removed' ? {funcName:'Delete all', funct:(OrderArr)=>triggerDeleteAllOrder({ OrderArr }), icon: <Icon
 icon="mi:delete-alt"
 style={{
 width: "1.2rem",
@@ -276,24 +401,41 @@ height: "1.2rem",
 color: "#3f3f3f",
 cursor: "pointer",
 }}
-/>} :""];
+/>} : "" ];
 
-const name = 'Orders'
+const name = `Order${removeSpaces(status)}`
 console.log(rowWiseFunctions)
 rowWiseFunctions = rowWiseFunctions.filter((ele)=>ele!=="")
 groupFunctions = groupFunctions.filter((ele)=>ele!=="")
-const tableData = { name, groupFunctions, rowWiseFunctions, header, rows }
+
+const tableRef = OrderTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+
+const serverSideFiltering = true;
+
+const tableData = { name, groupFunctions, rowWiseFunctions, header, rows, tableRef, tableContainerStyle, serverSideFiltering }
 console.log(tableData)
 return tableData
 
 
     }
 
+
+
     const returnBill = ( product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount ) => {
 
       console.log(product_charges, measurement_charges, dilevery_charges, labour_charges, fitting_charges, discount)
           return (parseFloat(product_charges) + parseFloat(measurement_charges.total) + parseFloat(dilevery_charges.total) + parseFloat(labour_charges) + parseFloat(fitting_charges.total) - parseFloat(discount))
+
     }
+
+    // const viewTaskPlan = (selectedOrder) => {
+    //   console.log(selectedOrder)
+    //   ReactPDF.render(<TaskPDF selectedOrder={selectedOrder}/>)
+    // }
 
     // const returnTotalPaid = ( paymentinfo ) => {
 
@@ -326,20 +468,20 @@ return tableData
 
     // }
    
-    const DeleteAll = async(orderArr) => {
-      let orderIdArr = orderArr.map((order)=>order[0].id)
-      const body = {
-        orderIdArr
-      }
-      try {
-        let res = await Axios.post(`/Order/multipleDelete`, body)
-        if(res.data.success){
-          getDataAndRefreshTable()
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
+    // const DeleteAll = async(orderArr) => {
+    //   let orderIdArr = orderArr.map((order)=>order[0].id)
+    //   const body = {
+    //     orderIdArr
+    //   }
+    //   try {
+    //     let res = await Axios.post(`/Order/multipleDelete`, body)
+    //     if(res.data.success){
+    //       getDataAndRefreshTable()
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    // }
 
     const viewCustomerDetails = ( Order, Orderarr ) => {
 
@@ -373,57 +515,57 @@ return tableData
 
     }
 
-    const updateOrderStatus = async( orderid, status, Order, Orderarr ) => {
+    // const UpdateOrderStatus = async( orderid, status, Order, Orderarr ) => {
 
-      const selctedOrderRow = Orderarr.filter((row)=>row.id===Order[0].id)[0] || null
+    //   const selctedOrderRow = Orderarr.filter((row)=>row.id===Order[0].id)[0] || null
 
-      if(!selctedOrderRow){
-        console.log(selctedOrderRow)
-        return 
-      } 
+    //   if(!selctedOrderRow){
+    //     console.log(selctedOrderRow)
+    //     return 
+    //   } 
 
-      const { customer_name, customer_whatsapp_number, order_number, completion_date } = selctedOrderRow
-      const recipient = "91" + customer_whatsapp_number
+    //   const { customer_name, customer_whatsapp_number, order_number, completion_date } = selctedOrderRow
+    //   const recipient = "91" + customer_whatsapp_number
 
-      const body = {
-        orderid,
-        status
-      }
+    //   const body = {
+    //     orderid,
+    //     status
+    //   }
 
-      try {
-        let res = await Axios.post(`/Order/updateOrderStatus`, body)
-        if(res.data.success){
-          getDataAndRefreshTable()
-          if(status==='In process'){
-            sendWhatsappMessageForOrderConfirmation(recipient, customer_name, order_number, orderid, completion_date)
-          }else if(status==='dilevered'){
-            sendWhatsappMessageForOrdeDilevered(recipient, customer_name, order_number)
-          }
-        }
-      } catch (error) {
-        console.log(error)
-      }
+    //   try {
+    //     let res = await Axios.post(`/Order/updateOrderStatus`, body)
+    //     if(res.data.success){
+    //       getDataAndRefreshTable()
+    //       if(status==='In process'){
+    //         sendWhatsappMessageForOrderConfirmation(recipient, customer_name, order_number, orderid, completion_date)
+    //       }else if(status==='dilevered'){
+    //         sendWhatsappMessageForOrdeDilevered(recipient, customer_name, order_number)
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
 
 
-    }
+    // }
 
-    const DeleteOrder = async( Order, Orderarr ) => {
-      try {
-        const selctedOrderRow = Orderarr.filter((row)=>row.id===Order[0].id)[0] || null
-        if(!selctedOrderRow){
-          console.log(selctedOrderRow)
-          return 
-        }
-        let res = await Axios.delete(`/Order/delete?orderid=${selctedOrderRow.id}`)
-        if(res.data.success){
-          getDataAndRefreshTable()
+    // const DeleteOrder = async( Order, Orderarr ) => {
+    //   try {
+    //     const selctedOrderRow = Orderarr.filter((row)=>row.id===Order[0].id)[0] || null
+    //     if(!selctedOrderRow){
+    //       console.log(selctedOrderRow)
+    //       return 
+    //     }
+    //     let res = await Axios.delete(`/Order/delete?orderid=${selctedOrderRow.id}`)
+    //     if(res.data.success){
+    //       getDataAndRefreshTable()
           
-        }
-      } catch (error) {
-        console.log(error)
-      }
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
 
-    }
+    // }
    
     const handleOrderFormOpen = async( orderid, component ) => {
 
@@ -443,6 +585,10 @@ return tableData
               setviewOrder(true)
             }else if(component==='update'){
               setOpenOrderForm(true)
+            }else if(component==='task'){
+              setOpenTaskView(true) 
+            }else if(component==='invoice'){
+              setOpenInvoiceView(true) 
             }
             
           }
@@ -459,6 +605,7 @@ return tableData
       if(component==='view'){
         setviewOrder(false)
       }else if(component==='update'){
+        deleteOrderSuccessfn()
         setOpenOrderForm(false)
         
       } 
@@ -467,11 +614,11 @@ return tableData
     }
 
     
-    useEffect(() => {
-      setinitialData()
-    },[status])
+    // useEffect(() => {
+    //   setinitialData()
+    // },[status])
 
-    console.log(allOrderinfo)
+    console.log(allOrderinfo, storeFilterData)
 
     return (
 
@@ -479,15 +626,14 @@ return tableData
 
          <div> 
             
-        <DialogDemo Open={openOrderForm} setOpen={(e)=>e?setOpenOrderForm(e):closeOrderForm('update')} buttontext="" contentclass='neworderdialog' btnclass = 'primarybtndiv'> 
+        <DialogDemo Open={openOrderForm} setOpen={(e) => e?setOpenOrderForm(e):closeOrderForm('update')} buttontext="" contentclass='neworderdialog'  btnclass = 'primarybtndiv'> 
          {(props) => (
+
              <NewOrder
              {...props}
-             
              selectedorder={selectedOrder}
-             
-             
-           />
+             />
+
             )}
 
          </DialogDemo>
@@ -516,11 +662,40 @@ return tableData
 
          </DialogDemo>
 
+         <DialogDemo Open={openTaskView} setOpen={setOpenTaskView} buttontext="" btnclass = 'primarybtndiv'> 
+         {(props) => (
+
+          <PDFViewer style={{minHeight:"80vh", minWidth:"996px"}}>
+          <TaskPDF
+          {...props}
+          selectedOrder={selectedOrder}
+          company={company}
+          />
+          </PDFViewer>
+
+            )}
+
+         </DialogDemo>
+
+         <DialogDemo Open={openInvoiceView} setOpen={setOpenInvoiceView} buttontext="" btnclass = 'primarybtndiv'> 
+         {(props) => (
+
+          <PDFViewer style={{minHeight:"80vh", minWidth:"996px"}}>
+          <InvoicePDF
+          {...props}
+          selectedOrder={selectedOrder}
+          company={company}
+          />
+          </PDFViewer>
+
+            )}
+
+         </DialogDemo>
 
          </div>
 
          
-       { tableData && <Table  data={tableData} /> }
+       { allOrderinfo && <Table  data={returnTableData(allOrderinfo)} /> }
 
         
         </div>

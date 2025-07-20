@@ -277,7 +277,7 @@ const GlassProduct = () => {
 
 
 const groupFunctions = [];
-const name = 'Glass Product table';
+const name = 'GlassProducttable';
 
 const tableData = { name, groupFunctions, rowWiseFunctions, header, rows }
 console.log(tableData)

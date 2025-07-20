@@ -7,6 +7,7 @@ import PropTypes from "prop-types";
 import { useEffect} from 'react';
 import SingleSelectDemo from '../../../../assets/formcomponents/select.jsx';
 import { ProductTypeItems } from '../../orders/allOrders/staticOptions.jsx';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 
 
@@ -91,7 +92,16 @@ console.log(isDirty, isValid, errors)
     
     <form className="normalDialogForm" onSubmit={handleSubmit(data=>selectedVendor?UpdateVendor({data, Vendorid:`${selectedVendor.id}`}):createNewVendor(data))}>
        <div style={{gap: "20px", flexDirection: "column", display: "flex", marginBottom:"150px" , padding:"0px 100px" }}>
-       <div className="formtitle">{selectedVendor?"Update vendor":"Add vendor"}</div>
+       <div className="formtitle"><Icon
+  icon="bi:person"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(30 171 7)",
+    cursor:"pointer"
+    
+    }}
+/>{selectedVendor?"Update vendor":"Add vendor"}</div>
        
        <Controller
           name="product_type"

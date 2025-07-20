@@ -15,7 +15,7 @@ import Productsinfo from "./products/products";
 import Paymentinfo from "./payment/paymentinfo";
 // import Paymenthis from "./paymenthis/paymenthis";
 
-const NewOrder = ({ selectedorder}) => {
+const NewOrder = ({ selectedorder }) => {
   const {addNotification} = useNotificationStore(
     // (state) => state.addNotification
   );
@@ -74,6 +74,7 @@ const NewOrder = ({ selectedorder}) => {
       id: "",
     },
     measuredby: "",
+    shipping_address:"",
     completionDate: "",
     products: [],
     payment: {
@@ -156,6 +157,7 @@ const NewOrder = ({ selectedorder}) => {
       id: "",
     },
     measuredby: "",
+    shipping_address:"",
     completionDate: "",
     products: [],
     payment: {
@@ -933,6 +935,7 @@ const NewOrder = ({ selectedorder}) => {
       orderid: generalInfo.orderid,
       completionDate: generalInfo.completionDate,
       measuredby: generalInfo.measuredby,
+      shipping_address:generalInfo.shipping_address,
       customer: generalInfo.customer
     };
 
@@ -1409,7 +1412,7 @@ const NewOrder = ({ selectedorder}) => {
   return (
     <div className="detailoutercomp" style={{margin:selectedorder && "auto", padding:selectedorder && "20px", maxHeight:"calc(90vh - 0px)"}}>
       <div
-        style={{ padding: "40px", border: "2px solid rgb(233, 233, 231)", borderRadius: "6px", minWidth:"1000px" }}
+        style={{ padding: "40px", border: "1px solid rgb(233, 233, 231)", borderRadius: "6px", minWidth:"1000px" }}
         className="infocomp"
       >
         <div
@@ -1418,8 +1421,6 @@ const NewOrder = ({ selectedorder}) => {
             justifyContent: "space-between",
             padding: "0px 20px",
             paddingBottom: "20px",
-            marginBottom: "20px",
-            borderBottom: "2px solid rgb(233, 233, 231)",
             color:"rgb(55, 53, 47)",
             fontWeight:"600"
           }}

@@ -1,21 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import { toCamelCase } from "../../../../commonfn";
 import Stextfield from "../../../../assets/singlecomponents/singletextfield/stextfield";
 import PanelButton from "../../../../assets/singlecomponents/panelButton/panelbutton";
 import { useGetPanelCustomers } from "../customerQueryHooks";
-import { returnStringifiedFilter } from "../customerFilterFunctions";
 import debounce from 'lodash.debounce';
+import { usePanelFilterStore } from "../../../../../strore/notificationStore";
 
 
 const CustomerPanel = ({ selectCustomer, selectSummaryTab, selectedTab , selectCatalogTab}) => {
 
 
     const [searchvalue, setsearchValue] = useState('');
+    const setPanelFilterData = usePanelFilterStore(state=>state.setPanelFilterData);
+    const storePanelFilterData = usePanelFilterStore(state => state['Customer-panel']);
     const customerPanelRef = useRef(null)
 
-    const { data , fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, error: getCustomererr, isLoading: getCustomerIsLoading } = useGetPanelCustomers(null, returnStringifiedFilter(null));
+
+    const returnStringfilter = (filter) => { 
+      return filter?JSON.stringify(filter):JSON.stringify({
+       name: null,
+       mobile_number: null,
+       whatsapp_number: null,
+       email_address: null,
+       address: null,
+       gstin: null,
+       pan: null,
+       adhaar_number: null,
+       note: null
+     })
+   }
+
+    const { data , fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, error: getCustomererr, isLoading: getCustomerIsLoading } = useGetPanelCustomers(null, returnStringfilter(storePanelFilterData));
     console.log(data)
     const Customers = (data?.pages ?? []).flatMap(page => page?.data ?? []);
 
@@ -62,27 +79,41 @@ const CustomerPanel = ({ selectCustomer, selectSummaryTab, selectedTab , selectC
 
  
 
-      const returnfilterCustomers = (customers, searchvalue) => {
-        console.log(customers, searchvalue)
-         if(!customers){
-          return []
-         }
-         if(!searchvalue){
-          return customers
-         }
-        
-          const filterCustomers =  customers.filter((emp)=>emp.name.toLowerCase().includes(searchvalue.toLowerCase()))
-          if(!filterCustomers){
-            return []
-          }
-          return filterCustomers
-        
+  
+
+      const setFilterValue = (e, name, index) => {
+        let val = e.target.value
+
+        const filter = {
+          name: val,
+          mobile_number: null,
+          whatsapp_number: null,
+          email_address: null,
+          address: null,
+          gstin: null,
+          pan: null,
+          adhaar_number: null,
+          note: null
+        }
+
+        debouncedSetPanelFilterData(filter)
+        // setPanelFilterData('Customer-panel', filter)
+        setsearchValue(val)
+       
+
       }
 
-      const setFilterValue = (e, name, index)=> {
-        let val = e.target.value
-        setsearchValue(val)
-      }
+      const debouncedSetPanelFilterData = useMemo(
+        () => debounce((filter) => {
+          setPanelFilterData('Customer-panel', filter);
+        }, 500),
+        []
+      );
+      
+
+    
+
+
 
      
 
@@ -95,12 +126,33 @@ const CustomerPanel = ({ selectCustomer, selectSummaryTab, selectedTab , selectC
       
         <div className="Comp">
         <div className="sidebartopdiv" >
+
+        <PanelButton selected={selectedTab.summary} name="Customer account"  funct={selectSummaryTab}
+        icon={<Icon
+          icon="carbon:account"
+          style={{
+            width: "1.3rem",
+            height: "1.3rem",
+            color: "rgb(60, 137, 255)",
+            cursor:"pointer"
+            
+            }}
+        />}
+        />
+        <PanelButton selected={selectedTab.catalog} name="Customers"  funct={selectCatalogTab} 
+        icon={<Icon
+          icon="bi:people"
+          style={{
+            width: "1.3rem",
+            height: "1.3rem",
+            color: "rgb(30, 171, 7)",
+            cursor:"pointer"
+            
+            }}
+        />}
+        />
        
-        <PanelButton selected={selectedTab.summary} name="Summary"  funct={selectSummaryTab}/>
-   
-         <PanelButton selected={selectedTab.catalog} name="Catalog"  funct={selectCatalogTab}/>
-    
-         
+       
          </div>
          <div className="sidebarmiddiv" ref={customerPanelRef} >
         <div style={{width:"100%", position:"sticky", top:"0", backgroundColor:"white", zIndex:"1", paddingTop:"10px", marginLeft:"-15px", paddingLeft:"15px"}}>
@@ -124,8 +176,21 @@ const CustomerPanel = ({ selectCustomer, selectSummaryTab, selectedTab , selectC
         />
         </div> 
         </div>
-        {returnfilterCustomers(Customers, searchvalue).length>0 && returnfilterCustomers(Customers, searchvalue).map((Customer, index)=>
-        <PanelButton key={index} selected={selectedTab.CustomerId==Customer.id} name={toCamelCase(Customer.name)}  funct={selectCustomer} functprop={Customer.id} />
+        {Customers.length>0 && Customers.map((Customer, index)=>
+        <PanelButton key={index} selected={selectedTab.CustomerId==Customer.id} name={(Customer.name)}  funct={selectCustomer} functprop={Customer.id} 
+        icon={<Icon
+          icon="ic:sharp-account-circle"
+          style={{
+            width: "2rem",
+            height: "2rem",
+            color: "rgb(170 170 170)",
+            cursor:"pointer"
+            
+            }}
+        />}
+        left="-48px"
+        color="rgb(228, 123, 78)"
+        />
         )}
    
         </div>

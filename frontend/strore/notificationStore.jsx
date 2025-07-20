@@ -51,4 +51,19 @@ filterStore  = persist(filterStore , { name: "tablefilters" })
 export const useFilterStore = create(filterStore);
 
 
+// Create a store to manage filter data
+let panelfilterStore = (set) => ({
+  panelFilterData: [],
+  setPanelFilterData: ( panelName, newfilterData ) => {
+  console.log(panelName, newfilterData)
+ 
+  set((state) => ({ ...state, [panelName]: newfilterData }))
+
+  }, // state is used for the initial data 
+  
+});
+
+panelfilterStore = persist(panelfilterStore , { name: "panelfilters" })
+
+export const usePanelFilterStore = create(panelfilterStore);
 

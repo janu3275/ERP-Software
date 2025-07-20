@@ -410,7 +410,16 @@ const openForm = () => {
       <div className="infocomp">
   
      
-    <div style={{margin:0}} className="tabheading"> EMI Payments </div>
+    <div style={{margin:0}} className="tabheading"> <Icon
+          icon="ph:bank"
+          style={{
+            width: "3rem",
+            height: "3rem",
+            color: "rgb(228, 123, 78)",
+            cursor:"pointer"
+            
+            }}
+        /> EMI Payments </div>
 
       <div style={{position:"relative"}} >
          <div style={{ width: "fit-content", position: "absolute" , right: '30px', zIndex: 1 }}> 

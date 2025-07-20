@@ -1,56 +1,115 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 
-import { orderItems, paymentItems } from "../allOrders/staticOptions";
+import { orderItems} from "../allOrders/staticOptions";
 import { Axios } from "../../../../../utils/axios.mjs";
 
-import { blobToBase64, generatePDF, returnConvertedDate, returnOrderStatusEle, returnPaymenStatusEle } from "../../../../commonfn";
+import {  returnConvertedDate, returnOrderStatusEle, returnPaymenStatusEle } from "../../../../commonfn";
 import DialogDemo from "../../../../assets/singlecomponents/dialog/dialog";
 import ViewOrder from "../viewOrder/vieworder";
 import CustomerView from "../allOrders/customerview/customerview";
 import Table from "../../../commoncomponents/tableComponent/table";
-import React from "react";
+
+import { useFilterStore } from "../../../../../strore/notificationStore";
+
+import debounce from "lodash.debounce";
+import { useGetOrdersAll } from "./allOrderQueryHooks";
+import { returnOrderStringifiedFilter } from "../orderfilterFunctions";
 
 
 const Allorders = () => {
-
-    const [openOrderForm, setOpenOrderForm] = useState(false);
-    const [allordersinfo, setallordersinfo] = useState([]);
-    const [tableData, settableData] = useState(null);
+    const storeFilterData = useFilterStore(state => state[`OrdersAll`]);
     const [selectedOrder, setselectedOrder] = useState(null);
     const [viewOrder, setviewOrder] = useState(false);
     const [openCustomerView, setOpenCustomerView] = useState(false);
     const [customerInfo, setcustomerInfo] = useState(null);
-  
-
-    const returnAllorders = async() => {
-      try {
-       
-        const url = `/Order/getallOrders`;
-        const res = await Axios.get(url)
-        if(res.data.success){
-          console.log(res.data.data)
-          let Orderarr = [...res.data.data]
-          return Orderarr
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    const setinitialData = async() => {
-       getDataAndRefreshTable()
-    }
-
-    const getDataAndRefreshTable = async() => {
-
-        let Orderarr = await returnAllorders()
+    const OrderAllTableRef = useRef(null);
     
-        setallordersinfo(Orderarr)
-        const tableobj = convertDataForTable(Orderarr);
-        settableData(tableobj)
 
+    const returnTableData = (data) => {
+
+      console.log("🚀 ~ returnTableData ~ data:", data)
+
+      if(!data){
+        return null
+      }
+
+      const tableobj = convertDataForTable(data);
+
+      return { ...tableobj };
+     
     }
+
+    const { data, error: getOrdererr, fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getOrderIsLoading } = useGetOrdersAll(null, returnOrderStringifiedFilter(storeFilterData, 'OrderAll'));
+
+    const allordersinfo = (data?.pages ?? []).flatMap(page => page?.data ?? []);
+
+    // const returnAllorders = async() => {
+    //   try {
+       
+    //     const url = `/Order/getallOrders`;
+    //     const res = await Axios.get(url)
+    //     if(res.data.success){
+    //       console.log(res.data.data)
+    //       let Orderarr = [...res.data.data]
+    //       return Orderarr
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    // }
+
+    // const setinitialData = async() => {
+    //    getDataAndRefreshTable()
+    // }
+
+    // const getDataAndRefreshTable = async() => {
+
+    //     let Orderarr = await returnAllorders()
+    
+    //     setallordersinfo(Orderarr)
+    //     const tableobj = convertDataForTable(Orderarr);
+    //     settableData(tableobj)
+
+    // }
+
+       // Infinite scroll event handler for loading next page
+       const loadNextPage = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      };
+    
+      // Infinite scroll event handler for loading previous page
+      // const loadPreviousPage = () => {
+      //   if (hasPreviousPage && !isFetchingPreviousPage) {
+      //     fetchPreviousPage();
+      //   }
+      // };
+    
+       // Attach scroll event for loading next or previous page on table scroll
+       useEffect(() => {
+        const onScroll = debounce(() => {
+          const table = OrderAllTableRef.current;
+          if (table) {
+            const { scrollTop, clientHeight, scrollHeight } = table;
+            // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+            //   loadPreviousPage();
+            // } else
+              console.log(scrollTop, clientHeight, scrollHeight)
+             if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+              loadNextPage();
+            }
+          }
+        }, 200);
+    
+        const table = OrderAllTableRef.current;
+        if (table) {
+          table.addEventListener('scroll', onScroll);
+          return () => table.removeEventListener('scroll', onScroll);
+        }
+      }, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
+
 
    
   
@@ -198,12 +257,21 @@ let rowWiseFunctions = [{funcName:'View order details', funct:(Order)=>viewOrder
 
 let groupFunctions = [];
 
-const name = 'Orders'
+const name = 'OrdersAll'
 console.log(rowWiseFunctions)
 rowWiseFunctions = rowWiseFunctions.filter((ele)=>ele!=="")
 groupFunctions = groupFunctions.filter((ele)=>ele!=="")
-const tableData = { name, groupFunctions, rowWiseFunctions, header, rows }
+const tableRef = OrderAllTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+
+const serverSideFiltering = true;
+
+const tableData = { name, groupFunctions, rowWiseFunctions, header, rows,  tableRef, tableContainerStyle, serverSideFiltering }
 console.log(tableData)
+
 return tableData
 
 
@@ -306,8 +374,6 @@ return tableData
             setselectedOrder(res.data.data);
             if(component==='view'){
               setviewOrder(true)
-            }else if(component==='update'){
-              setOpenOrderForm(true)
             }
             
           }
@@ -323,19 +389,16 @@ return tableData
    
       if(component==='view'){
         setviewOrder(false)
-      }else if(component==='update'){
-        setOpenOrderForm(false)
-        
-      } 
+      }
       setselectedOrder(null)
 
     }
 
     
-    useEffect(() => {
-        console.log("entered")
-      setinitialData()
-    },[])
+    // useEffect(() => {
+    //     console.log("entered")
+    //   setinitialData()
+    // },[])
 
     console.log(allordersinfo)
 
@@ -374,7 +437,7 @@ return tableData
          </div>
 
          
-       { tableData && <Table  data={tableData} /> }
+       { allordersinfo && <Table  data={returnTableData(allordersinfo)} /> }
 
         
         </div>

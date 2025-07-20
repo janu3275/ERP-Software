@@ -321,6 +321,148 @@ const vendorApi = {
     }
   }),
 
+  getallVendorSummary: asyncHandler(async (req, res, next) => {
+    // BODY VALIDATION
+    const market_id = req.market.market_id;
+    const schema = Joi.object({
+      market_id: Joi.number().integer().required(),
+      filters: Joi.object().required(),
+      nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+      limit: Joi.number().integer().default(10) // Page size
+    });
+  
+
+    let body = {
+      ...req.body,
+      market_id
+    };
+
+    const { error, value } = schema.validate(body);
+
+    // HANDLE VALIDATION ERROR
+
+    if (error) {
+      console.log(error.details);
+      return res.status(200).json({
+        success: false,
+        message: "Validation error",
+        error: error.details,
+      });
+    }
+
+    const { previousCursor, nextCursor } = value
+    // PROCEEDING TOWARDS GETTING ALL ORDERS ---------
+
+    const VendorSummaryFilteredQry = `
+   SELECT
+   v.id AS id,
+   v.vendor_name,
+   v.contact_person, 
+   v.phone_number,
+   v.whatsapp_number,
+   COALESCE(SUM(vb.bill_amount), 0) AS total_bill,
+   COALESCE(SUM(vp.amount), 0) AS total_paid,
+   COALESCE(SUM(vb.bill_amount), 0) - COALESCE(SUM(vp.amount), 0) AS outstanding,
+   CASE
+       WHEN COALESCE(SUM(vb.bill_amount), 0) - COALESCE(SUM(vp.amount), 0) <= 0 THEN 'paid'
+       ELSE 'payment pending'
+   END AS payment_status
+FROM
+   public.vendors v
+   LEFT JOIN public.vendor_bills vb ON v.id = vb.vendor_id
+   LEFT JOIN public.vendor_payments vp ON v.id = vp.vendor_id
+WHERE
+   v.market_id = $1
+   AND ($2::text IS NULL OR v.vendor_name ILIKE '%' || $2::text || '%')
+   AND ($3::text IS NULL OR v.contact_person ILIKE '%' || $3::text || '%')
+   AND ($4::text IS NULL OR v.phone_number LIKE '%' || $4::text || '%')
+   AND ($5::text IS NULL OR v.whatsapp_number LIKE '%' || $5::text || '%')
+GROUP BY
+   v.id,
+   v.vendor_name,
+   v.contact_person,
+   v.phone_number,
+   v.whatsapp_number
+HAVING
+   ($6::text IS NULL OR (
+       CASE
+           WHEN COALESCE(SUM(vb.bill_amount), 0) - COALESCE(SUM(vp.amount), 0) <= 0 THEN 'paid'
+           ELSE 'payment pending'
+       END = $6::text
+   ))
+   AND ($7::numeric IS NULL OR COALESCE(SUM(vb.bill_amount), 0) >= $7::numeric)
+   AND ($8::numeric IS NULL OR COALESCE(SUM(vb.bill_amount), 0) <= $8::numeric)
+   AND ($9::numeric IS NULL OR COALESCE(SUM(vp.amount), 0) >= $9::numeric)
+   AND ($10::numeric IS NULL OR COALESCE(SUM(vp.amount), 0) <= $10::numeric)
+   AND ($11::numeric IS NULL OR (COALESCE(SUM(vb.bill_amount), 0) - COALESCE(SUM(vp.amount), 0)) >= $11::numeric)
+   AND ($12::numeric IS NULL OR (COALESCE(SUM(vb.bill_amount), 0) - COALESCE(SUM(vp.amount), 0)) <= $12::numeric)
+   ${nextCursor ? `AND id > ${nextCursor}` : ''}
+   ${previousCursor ? `AND id < ${previousCursor}` : ''}
+ORDER BY
+   v.id ASC
+LIMIT $13;`
+
+
+    try {
+
+  
+      const { filters, limit } = value;
+
+      const queryParams = [
+        value.market_id,
+        filters.vendor_name || null,
+        filters.contact_person || null,
+        filters.phone_number || null,
+        filters.whatsapp_number || null,
+        filters.payment_status || null,
+        filters.total_bill.minValue || null,
+        filters.total_bill.maxValue || null,
+        filters.total_paid.minValue || null,
+        filters.total_paid.maxValue || null,
+        filters.outstanding.minValue || null,
+        filters.outstanding.maxValue || null,
+        limit
+      ]
+
+      const allVendorInfo = (
+        await queryDB(VendorSummaryFilteredQry, queryParams)
+      ).rows;
+
+      console.log(allVendorInfo)
+
+      if (allVendorInfo) {
+
+        const nextCursor = allVendorInfo[allVendorInfo.length - 1].id;
+        const previousCursor = allVendorInfo[0].id;
+
+        res.status(200).json({
+          success: true,
+          message: "request successfully",
+          data: allVendorInfo,
+          nextCursor: allVendorInfo.length === limit ? nextCursor : null, // Indicate if there are more results
+          previousCursor: allVendorInfo.length === limit ? previousCursor : null, // Indicate if there are previous results
+        });
+
+      } else {
+
+        res.status(200).json({
+          success: false,
+          message: "problem in getting Service",
+          data: allVendorInfo,
+          nextCursor: null, 
+          previousCursor: null
+        });
+
+      }
+      
+    } catch (error) {
+      return res
+        .status(200)
+        .json({ success: false, message: "updating error", error: error });
+    }
+  }),
+
 
 
 

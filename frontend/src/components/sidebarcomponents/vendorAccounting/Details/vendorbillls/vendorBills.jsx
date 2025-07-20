@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import StackedImages from "../../../../../assets/singlecomponents/stackedimages/stackedimages";
@@ -11,34 +11,17 @@ import "./vendorBills.css";
 import { boolItems } from "../../../orders/allOrders/staticOptions";
 import { useAddVendorBill, useDeleteVendorBill, useGetVendorBills, useUpdateVendorBill } from "../../../Vendorqueryhooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFilterStore } from "../../../../../../strore/notificationStore";
+import { returnVendorStringifiedFilter } from "../../vendorFilterFunctions";
+import debounce from "lodash.debounce";
 
 
 const VendorBills = ({ vendorId, product_type }) => { 
-
+    const storeFilterData = useFilterStore(state => state[`VendorBills${vendorId}`]);
     const [openVendorBillsForm, setOpenVendorBillsForm] = useState(false);
     const [selectedVendorBill, setselectedVendorBill] = useState(null);
-
+    const vendorBillsTableRef = useRef(null);
     const queryClient = useQueryClient();
-
-    const addVendorBillSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey : [`vendorBills-${vendorId}`] });
-      // Close the vendor form
-      setOpenVendorBillsForm(false)
-    }
-
-    const updateVendorBillSuccessfn = () => {
-       // Invalidate or refetch the vendor list query
-       queryClient.invalidateQueries({ queryKey:[`vendorBills-${vendorId}`] });
-       setselectedVendorBill(null)
-       setOpenVendorBillsForm(false)
-
-    }
-
-    const deleteVendorBillSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey:[`vendorBills-${vendorId}`] });
-    }
 
     const returnTableData = (data) => {
 
@@ -50,8 +33,32 @@ const VendorBills = ({ vendorId, product_type }) => {
       return tableobj
      
     }
+
+    const addVendorBillSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`vendorBills-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorBills')] , exact: true  });
+      // Close the vendor form
+      setOpenVendorBillsForm(false)
+    }
+
+    const updateVendorBillSuccessfn = () => {
+       // Invalidate or refetch the vendor list query
+       queryClient.invalidateQueries({ queryKey : [`vendorBills-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorBills')] , exact: true  });
+       setselectedVendorBill(null)
+       setOpenVendorBillsForm(false)
+
+    }
+
+    const deleteVendorBillSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`vendorBills-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorBills')] , exact: true  });
+    }
+
     
-    const { data: vendorBillArr , error: getVendorBillerr, isLoading: getVendorBillIsLoading } = useGetVendorBills( vendorId, product_type );
+    
+    const { data, error: getVendorBillerr,  fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage, isLoading: getVendorBillIsLoading } = useGetVendorBills( vendorId, product_type, null, returnVendorStringifiedFilter(storeFilterData, 'VendorBills') );
+
+    const vendorBillArr = (data?.pages ?? []).flatMap( page => page?.data ?? [] );
 
     const { mutate: triggerCreateVendorBill , error: addVendorBillerr, isLoading: addVendorBillIsLoading } = useAddVendorBill( addVendorBillSuccessfn );
 
@@ -59,6 +66,43 @@ const VendorBills = ({ vendorId, product_type }) => {
 
     const { mutate: triggerDeleteVendorBill , error: deleteVendorBillerr, isLoading: deleteVendorBillIsLoading } = useDeleteVendorBill( deleteVendorBillSuccessfn );
   
+ // Infinite scroll event handler for loading next page
+ const loadNextPage = () => {
+  if (hasNextPage && !isFetchingNextPage) {
+    fetchNextPage();
+  }
+};
+
+// Infinite scroll event handler for loading previous page
+// const loadPreviousPage = () => {
+//   if (hasPreviousPage && !isFetchingPreviousPage) {
+//     fetchPreviousPage();
+//   }
+// };
+
+ // Attach scroll event for loading next or previous page on table scroll
+ useEffect(() => {
+  const onScroll = debounce(() => {
+    const table = vendorBillsTableRef.current;
+    if (table) {
+      const { scrollTop, clientHeight, scrollHeight } = table;
+      // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+      //   loadPreviousPage();
+      // } else
+        console.log(scrollTop, clientHeight, scrollHeight)
+       if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+        loadNextPage();
+      }
+    }
+  }, 200);
+
+  const table = vendorBillsTableRef.current;
+  if (table) {
+    table.addEventListener('scroll', onScroll);
+    return () => table.removeEventListener('scroll', onScroll);
+  }
+}, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
+
 
     
 const convertDataForTable = (data) => {
@@ -182,9 +226,17 @@ cursor: "pointer",
 
 
 
-const name = 'VendorBills'
+const name = `VendorBills${vendorId}`
 
-const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows}
+const tableRef = vendorBillsTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 236px)"
+}
+
+const serverSideFiltering = true;
+
+const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows, tableRef, tableContainerStyle, serverSideFiltering}
 console.log(tableData)
 return tableData
 
@@ -260,7 +312,7 @@ const VendorBillsFormOpen = ( VendorBills, VendorBillsarr ) => {
     }
 
 
-
+      console.log(vendorBillArr, data)
     return (
         <>
         {vendorBillArr && <div style={{position:"relative"}}>

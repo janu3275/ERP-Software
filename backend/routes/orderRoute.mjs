@@ -11,11 +11,11 @@ import { authCompanyToken, authMarketToken, authUserToken } from '../middleware/
 const router = express.Router()
 
 
-router.get("/getallOrders", authCompanyToken, authMarketToken , authUserToken, orderApi.getallOrders);
-router.get("/getall", authCompanyToken, authMarketToken , authUserToken, orderApi.getOrdersByOrderStatus);
+router.post("/getallOrders", authCompanyToken, authMarketToken , authUserToken, orderApi.getallOrders);
+router.post("/getall", authCompanyToken, authMarketToken , authUserToken, orderApi.getOrdersByOrderStatus);
 router.get("/getbyid",authCompanyToken, authMarketToken , authUserToken, orderApi.getOrderbyId);
-router.get("/getbycustomer",authCompanyToken, authMarketToken , authUserToken, orderApi.getOrdersByCustomer);
-router.get("/getcustomersummary",authCompanyToken, authMarketToken , authUserToken, orderApi.getallCustomerSummary);
+router.post("/getbycustomer/:customer_id",authCompanyToken, authMarketToken , authUserToken, orderApi.getOrdersByCustomer);
+router.post("/getcustomersummary",authCompanyToken, authMarketToken , authUserToken, orderApi.getallCustomerSummary);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken,orderApi.addNewOrder);
 router.post("/addPaymenthis",authCompanyToken, authMarketToken , authUserToken, orderApi.addPaymentHis);
 router.post("/addProduct",authCompanyToken, authMarketToken , authUserToken, orderApi.addProduct);

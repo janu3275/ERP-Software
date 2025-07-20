@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     background-color: white;
-    padding-top: 200px;
+    /* padding-top: 200px; */
  
   
    
@@ -44,7 +44,9 @@
 
 .mainlayout{
     position: relative;
-    background-color: antiquewhite;
+    background-color: #8d8dff;
+    /* background-color: #47379e; */
+    /* background-color: #3c29a3; */
     min-height: calc(100vh - 200px);
     display: flex;
     /* justify-content: center; */
@@ -52,4 +54,36 @@
     flex-direction: column;
     align-items: center;
     /* padding-left: 600px; */
+}
+
+.loginimg1{
+    position: absolute;
+    object-fit: cover;
+    /* width: calc(100vw - 40px); */
+    max-height: 600px;
+    margin: auto;
+    border-radius: 22px;
+    /* left: 80px; */
+}
+
+.loginimg2{
+position: absolute;
+object-fit: cover;
+/* width: calc(100vw - 40px); */
+max-height: 400px;
+}
+
+.loginimgContainer{
+    position: absolute;
+    left: 400px;
+    width: calc(100% - 400px);
+    height: calc(100% - 200px);
+    display: flex;
+    justify-content: center;
+    
+}
+
+.logo{
+    height: 40px;
+    width: 40px;
 }

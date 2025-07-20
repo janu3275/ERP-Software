@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import DialogDemo from "../../../../../assets/singlecomponents/dialog/dialog";
@@ -10,36 +10,21 @@ import ViewPo from "./poItems/viewPo";
 import { useReactToPrint } from 'react-to-print';
 import { useQueryClient } from "@tanstack/react-query";
 import { useAddVendorPO, useDeleteVendorPO, useGetVendorPO, useUpdateVendorPO } from "../../../Vendorqueryhooks";
+import { useFilterStore } from "../../../../../../strore/notificationStore";
+import { returnVendorStringifiedFilter } from "../../vendorFilterFunctions";
+import debounce from "lodash.debounce";
 
 const VendorPOs = ({vendorId}) => { 
 
+    const storeFilterData = useFilterStore(state => state[`VendorPO${vendorId}`]);
     const [openVendorPOsForm, setOpenVendorPOsForm] = useState(false);
     const [selectedVendorPO, setselectedVendorPO] = useState(null);
     const [openViewPo, setOpenViewPo] = useState(false); 
     const poRef = useRef(null)
+    const vendorPOTableRef = useRef(null);
 
     const queryClient = useQueryClient();
 
-    const addVendorPOSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey : [`vendorPOs-${vendorId}`] });
-      // Close the vendor form
-      setOpenVendorPOsForm(false)
-    }
-
-    const updateVendorPOSuccessfn = () => {
-       // Invalidate or refetch the vendor list query
-       queryClient.invalidateQueries({ queryKey:[`vendorPOs-${vendorId}`] });
-       setselectedVendorPO(null)
-       setOpenVendorPOsForm(false)
-
-    }
-
-    const deleteVendorPOSuccessfn = () => {
-      // Invalidate or refetch the vendor list query
-      queryClient.invalidateQueries({ queryKey:[`vendorPOs-${vendorId}`] });
-
-    }
 
     const returnTableData = (data) => {
       console.log(data)
@@ -51,8 +36,32 @@ const VendorPOs = ({vendorId}) => {
       return tableobj
      
     }
+
+    const addVendorPOSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({ queryKey : [`vendorPOs-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPurchaseOrders')], exact: true });
+      // Close the vendor form
+      setOpenVendorPOsForm(false)
+    }
+
+    const updateVendorPOSuccessfn = () => {
+       // Invalidate or refetch the vendor list query
+       queryClient.invalidateQueries({queryKey : [`vendorPOs-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPurchaseOrders')], exact: true });
+       setselectedVendorPO(null)
+       setOpenVendorPOsForm(false)
+
+    }
+
+    const deleteVendorPOSuccessfn = () => {
+      // Invalidate or refetch the vendor list query
+      queryClient.invalidateQueries({queryKey : [`vendorPOs-${vendorId}`, returnVendorStringifiedFilter(storeFilterData, 'VendorPurchaseOrders')], exact: true });
+
+    }
+
     
-    const { data: vendorPOArr , error: getVendorPOerr, isLoading: getVendorPOIsLoading } = useGetVendorPO( vendorId );
+    const { data , error: getVendorPOerr,  fetchNextPage, hasNextPage, isFetchingNextPage, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage,  isLoading: getVendorPOIsLoading } = useGetVendorPO( vendorId,  null, returnVendorStringifiedFilter(storeFilterData, 'VendorPurchaseOrders') );
+    
+    const vendorPOArr = (data?.pages ?? []).flatMap( page => page?.data ?? [] );
 
     const { mutate: triggerCreateVendorPO , error: addVendorPOerr, isLoading: addVendorPOIsLoading } = useAddVendorPO( addVendorPOSuccessfn );
 
@@ -60,7 +69,44 @@ const VendorPOs = ({vendorId}) => {
 
     const { mutate: triggerDeleteVendorPO , error: deleteVendorPOerr, isLoading: deleteVendorPOIsLoading } = useDeleteVendorPO( deleteVendorPOSuccessfn );
 
- 
+ // Infinite scroll event handler for loading next page
+ const loadNextPage = () => {
+  if (hasNextPage && !isFetchingNextPage) {
+    fetchNextPage();
+  }
+};
+
+// Infinite scroll event handler for loading previous page
+// const loadPreviousPage = () => {
+//   if (hasPreviousPage && !isFetchingPreviousPage) {
+//     fetchPreviousPage();
+//   }
+// };
+
+ // Attach scroll event for loading next or previous page on table scroll
+ useEffect(() => {
+  const onScroll = debounce(() => {
+    const table = vendorPOTableRef.current;
+    if (table) {
+      const { scrollTop, clientHeight, scrollHeight } = table;
+      // if (scrollTop === 0 && hasPreviousPage && !isFetchingPreviousPage) {
+      //   loadPreviousPage();
+      // } else
+        console.log(scrollTop, clientHeight, scrollHeight)
+       if (scrollTop + clientHeight + 20 >= scrollHeight && hasNextPage && !isFetchingNextPage) {
+        loadNextPage();
+      }
+    }
+  }, 200);
+
+  const table = vendorPOTableRef.current;
+  if (table) {
+    table.addEventListener('scroll', onScroll);
+    return () => table.removeEventListener('scroll', onScroll);
+  }
+}, [hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage]);
+
+
 
 const convertDataForTable = (data) => {
 
@@ -110,7 +156,7 @@ style={{
   VendorPOs: "rgb(82, 78, 70)",
   cursor: "pointer"
 }}
- />},{funcName:'Edit', funct:(VendorPO)=>VendorPOsFormOpen(VendorPO, VendorPOsarr) , icon: <Icon
+ />},{funcName:'Update', funct:(VendorPO)=>VendorPOsFormOpen(VendorPO, VendorPOsarr) , icon: <Icon
     icon="mynaui:edit-one"
     style={{
       width: "1.1rem",
@@ -150,9 +196,14 @@ cursor: "pointer",
 
 
 
-const name = 'VendorPOs'
+const name = `VendorPO${vendorId}`
 
-const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows}
+const tableRef = vendorPOTableRef;
+
+const tableContainerStyle = {
+  maxHeight:"calc(100vh - 176px)"
+}
+const tableData = {name, groupFunctions, rowWiseFunctions,  header, rows, tableRef, tableContainerStyle}
 console.log(tableData)
 return tableData
 

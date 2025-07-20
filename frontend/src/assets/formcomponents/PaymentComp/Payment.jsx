@@ -5,7 +5,7 @@ import { forwardRef } from 'react';
 
 
 const PaymentFormComp = forwardRef(({  name , value, onChange,  errors, ...rest }, forwardedRef ) => {
-
+    console.log("k")
     const onPayAmountChange = (e, name, index) => {
 
         console.log(e.target.value, name, index)

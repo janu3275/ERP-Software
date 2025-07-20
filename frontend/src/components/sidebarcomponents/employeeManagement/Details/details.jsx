@@ -11,8 +11,79 @@ import { returnItems } from "../../../../commonfn";
 
 const EmployeeDetails = ({employeeId}) => {
     
-    const components = ['Employee details', 'Employee Payments', 'Employee Attendance']
+    const components = [{name:'Employee details', 
+      icon:<Icon
+      icon="mdi:file-account-outline"
+      style={{
+        width: "1.5rem",
+        height: "1.5rem",
+        color: "rgb(228 123 78)",
+        cursor:"pointer"
+        
+        }}
+    />,
+    largeicon: <Icon
+    icon="mdi:file-account-outline"
+    style={{
+      width: "3rem",
+      height: "3rem",
+      color: "rgb(228 123 78)",
+      cursor:"pointer"
+      
+      }}
+  />
+    },{name:'Employee Payments',
+      icon:<Icon
+      icon="tdesign:money"
+      style={{
+        width: "1.3rem",
+        height: "1.3rem",
+        color: "rgb(30 171 7)",
+        cursor:"pointer"
+        
+        }}
+    />,
+    largeicon: <Icon
+  icon="tdesign:money"
+  style={{
+    width: "3rem",
+    height: "3rem",
+    color: "rgb(30 171 7)",
+    cursor:"pointer"
+    
+    }}
+/>}, {name:'Employee Attendance', icon:<Icon
+      icon="icon-park-outline:people-bottom"
+      style={{
+        width: "1.5rem",
+        height: "1.5rem",
+        color: "rgb(60, 137, 255)",
+        cursor:"pointer"
+        
+        }}
+    />,
+    largeicon: <Icon
+  icon="icon-park-outline:people-bottom"
+  style={{
+    width: "2.8rem",
+    height: "2.8rem",
+    color: "rgb(60, 137, 255)",
+    cursor:"pointer"
+    
+    }}
+/>}]
+
     const [selectedtab, setselectedtab] = useState('Employee details')
+    const [selectedtabIcon, setselectedtabIcon] = useState(<Icon
+      icon="mdi:file-account-outline"
+      style={{
+        width: "3rem",
+        height: "3rem",
+        color: "rgb(228 123 78)",
+        cursor:"pointer"
+        
+        }}
+    />);
     const [employeeInfo, setemployeeInfo] = useState(null)
     const [posAndDepartArr, setposAndDepartArr] = useState({
       posItems:[],
@@ -97,12 +168,14 @@ const EmployeeDetails = ({employeeId}) => {
           }
     }
 
-    const switchTab = (name)=>{
-        if(selectedtab!==name){
-            setselectedtab(name)
-        }
+    const switchTab = (comp) => {
       
-    }
+      if(selectedtab!==comp.name){
+          setselectedtab(comp.name)
+          setselectedtabIcon(comp.largeicon)
+      }
+    
+  }
 
     const UpdateEmployee = async({data, Employeeid}) => {
 
@@ -152,25 +225,25 @@ const EmployeeDetails = ({employeeId}) => {
     return (
         <div style={{overflow:"auto", marginRight:"-20px"}} className="detailoutercomp">
       <div className="switchtabletabs">
-        {components.length>0 && components.map((name, index)=><button onClick={()=>switchTab(name)}  className={selectedtab===name ? "tabletabbtn select":"tabletabbtn"} key={index}> <div className={selectedtab===name ? "tabletabdiv select":"tabletabdiv"}>{name}</div>  </button>)}
+        {components.length>0 && components.map((comp, index)=><button onClick={()=>switchTab(comp)}  className={selectedtab===comp.name ? "tabletabbtn select":"tabletabbtn"} key={index}> <div className={selectedtab===comp.name ? "tabletabdiv select":"tabletabdiv"}>{comp.icon}{comp.name}</div> </button>)}
       </div>
       <div className="infocomp">
       {employeeInfo && selectedtab==='Employee details' && 
-      <div style={{width:"max-content", margin:"auto"}}>  
-        <div style={{width:"auto"}} className="tabheading">{selectedtab}</div>
+      <div style={{width:"max-content", margin:"auto", marginBottom:"80px"}}>  
+        <div style={{width:"auto"}} className="tabheading">{selectedtabIcon}{selectedtab}</div>
         {employeeInfo && <EmployeeInfoform selectedEmployee={employeeInfo} UpdateEmployee={UpdateEmployee} posItems={posAndDepartArr.posItems} departItems={posAndDepartArr.DepartItems}/> }
         
         </div>}
         {employeeId && selectedtab==='Employee Payments' && 
       <div> 
-        <div className="billtabheading"> {selectedtab} </div>
+        <div className="billtabheading">{selectedtabIcon} {selectedtab} </div>
         <EmployeePayments Payments employeeId={employeeId}/> 
         
         </div>}
 
         {employeeId && selectedtab==='Employee Attendance' && 
       <div> 
-        <div className="billtabheading"> {selectedtab} </div>
+        <div className="billtabheading">{selectedtabIcon} {selectedtab} </div>
         <Attendance employeeId={employeeId}/> 
         
         </div>}

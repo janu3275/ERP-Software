@@ -10,9 +10,9 @@ import AllEmployeeAttendance from './allEmployeeAttendance/allEmployeeAttendance
 
 const EmployeeManagement = () => {
     const [selectedTab, setselectedTab] = useState({
-        summary:true, 
+        summary:false, 
         employeeId: null,
-        catalog: false,
+        catalog: true,
         attendance: false
     })
 

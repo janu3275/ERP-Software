@@ -42,14 +42,14 @@ const UserRegisterform = ({registerUser}) => {
   return (
     
     <form onSubmit={handleSubmit(data=>registerUser(data))}>
-       <div style={{marginTop:"100px",  flexDirection: "column", display: "flex" }}>
+       <div style={{marginTop:"20px",  flexDirection: "column", display: "flex", gap:"10px" }}>
 
           <Labelwithtextfield
             register={register}
             errors={errors}
             name="userid"
             labelclassname="custformlabel"
-            textfieldclassname="custformtext"
+            textfieldclassname="logintextfield"
             divclassname="vertical"
             defaultValue=""
             label="User ID"
@@ -66,10 +66,10 @@ const UserRegisterform = ({registerUser}) => {
             errors={errors}
             name="password"
             labelclassname="custformlabel"
-            textfieldclassname="custformtext"
+            textfieldclassname="logintextfield"
             divclassname="vertical"
             defaultValue=""
-            label="PASSWORD"
+            label="Password"
             direction="row"
             type="text"
             placeholder="password"
@@ -77,7 +77,7 @@ const UserRegisterform = ({registerUser}) => {
           
        </div>
         <div style={{display:"flex",  marginTop:"10px"}}>
-      <button style={{marginTop:"10px"}} className='oksecondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
+      <button style={{marginTop:"10px", width:"-webkit-fill-available", height:"22px", borderRadius:"4px"}} className='secondarybtn' type="submit" disabled={!isDirty || !isValid || isSubmitting}>
         Register user
       </button>
       </div>

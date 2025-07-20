@@ -3,12 +3,13 @@
     z-index: 2;
     width: -webkit-fill-available;
     display: flex;
-    justify-content: space-between;
+    justify-content:end;
     align-items: center;
     background-color: white;
     color: black;
     padding: 5px 20px;
     border-bottom: 1px solid rgb(233, 233, 231);
+    gap: 20px;
   }
   
   .menu-button {
@@ -51,11 +52,29 @@
   }
 
   .loginpopbtnclass{
-    height: 30px !important;
-    width: fit-content !important;
-    padding: 5px 10px;
-    box-shadow: none !important;
-    color: black !important;
-    /* background-color: antiquewhite !important; */
-    /* border-radius: 50% !important; */
+   
+    cursor: pointer;
+    border-radius: 50%;
+
+  }
+
+  /* .loginpopbtnclass:focus{
+    box-shadow: 0 0 0 2px rgb(151, 238, 155);
+  } */
+
+  .navbarbox{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid rgba(175, 175, 175, 0.43);
+    padding: 2px 12px;
+    border-radius: 4px;
+  }
+
+  .navbarlogo{
+    border-radius: 50%;
+  }
+
+  .navbarlogo:focus{
+    border: solid
   }

@@ -201,21 +201,21 @@ const convertDataForTable = (data) => {
 
     })
 
-const rowWiseFunctions = [{funcName:'edit', funct:(Vendor)=>VendorFormOpen(Vendor, Vendorarr) , icon: <Icon
-    icon="mi:edit-alt"
-    style={{
-      width: "1.2rem",
-      height: "1.2rem",
-      Vendor: "#3f3f3f",
-      cursor: "pointer"
-    }}
-     />}, {funcName:'delete', funct:(Vendor)=>triggerDeleteVendor({Vendor, Vendorarr}), icon: <Icon
-     icon="mi:edit-alt"
+const rowWiseFunctions = [{funcName:'Update', funct:(Vendor)=>VendorFormOpen(Vendor, Vendorarr) , icon: <Icon
+  icon="mynaui:edit-one"
+  style={{
+    width: "1.2rem",
+    height: "1.2rem",
+    Customer: "#3f3f3f",
+    cursor: "pointer"
+  }}
+     />}, {funcName:'Delete', funct:(Vendor)=>triggerDeleteVendor({Vendor, Vendorarr}), icon: <Icon
+     icon="mi:delete-alt"
      style={{
      width: "1.2rem",
      height: "1.2rem",
-     Vendor: "#3f3f3f",
-     cursor: "pointer",
+     Customer: "#3f3f3f",
+     cursor: "pointer"
     }}
     />}]
 
@@ -256,7 +256,18 @@ const VendorFormOpen = ( Vendor, Vendorarr ) => {
       <div className="infocomp">
   
      
-    <div style={{margin:0}} className="tabheading">Vendor catalog</div>
+    <div style={{margin:0}} className="tabheading">
+    <Icon
+            icon="bi:people"
+            style={{
+              width: "3rem",
+              height: "3rem",
+              color: "rgb(30, 171, 7)",
+              cursor:"pointer"
+              
+              }}
+          />
+      Vendors</div>
    
     
   

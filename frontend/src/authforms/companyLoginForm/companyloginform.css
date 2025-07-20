@@ -1,7 +1,7 @@
 .logintextfield{
     background: white;
     padding: 5px 10px;
-    border-radius: 10px;
+    /* border-radius: 10px; */
     width: 280px;
     
 }
@@ -10,3 +10,7 @@
     font-weight: 600;
     color: #5c5c5c;
 }
+
+.logintextfield:focus {
+    box-shadow: 0 0 0 3px rgb(85, 151, 231);
+  }

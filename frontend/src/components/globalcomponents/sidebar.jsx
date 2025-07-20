@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import "./sidebar.css";
 import { useState } from "react";
 import { checkToken } from "../../commonfn";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 const Sidebar = ({
      sidebaropen,
@@ -35,16 +36,26 @@ const Sidebar = ({
       <h2 className={sidebaropen ? "brand" : "brand close"}>AasanVyapaar</h2>
       </div>
         </li>
-        <li onClick={()=>openComponent('dashboard')}  className="menu-item">
+        {/* <li onClick={()=>openComponent('dashboard')}  className="menu-item">
           <span className="icon">&#9733;</span>
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
             {" "}
             Dashboard{" "}
           </div>
           
-        </li>
-        <li onClick={()=>openComponent('orderManagementPage')} className="menu-item">
-          <span className="icon">&#9733;</span>
+        </li> */}
+        <li onClick={()=>openComponent('orderManagementPage')}  className={openPage.orderManagementPage?"menu-item selecteditem":"menu-item"}>
+          {/* <span className="icon">&#9733;</span> */}
+          <Icon
+            icon="lets-icons:order"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
             {" "}
             Order management{" "}
@@ -217,49 +228,113 @@ const Sidebar = ({
         } */}
 
          <li onClick={()=>openComponent('customerManagementPage')} className={openPage.customerManagementPage?"menu-item selecteditem":"menu-item"} >
-          <span className="icon">&#9998;</span>
+          {/* <span className="icon">&#9998;</span> */}
+          <Icon
+            icon="bi:people"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"} >
             Customer Management
           </div>
         </li>
 
-        <li onClick={()=>openComponent('transactionPage')} className={openPage.transactionPage?"menu-item selecteditem":"menu-item"} >
-          <span className="icon">&#9998;</span>
-          <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
-            Transactions
-          </div>
-        </li>
+       
 
         <li onClick={()=>openComponent('vendorAccountingPage')} className={openPage.vendorAccountingPage?"menu-item selecteditem":"menu-item"}>
-          <span className="icon">&#9998;</span>
+          {/* <span className="icon">&#9998;</span> */}
+          <Icon
+            icon="clarity:employee-line"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
-            Vendor Account
+            Vendor Management
           </div>
         </li>
 
         <li onClick={()=>openComponent('employeeManagementPage')} className={openPage.employeeManagementPage?"menu-item selecteditem":"menu-item"}>
-          <span className="icon">&#9998;</span>
+          {/* <span className="icon">&#9998;</span> */}
+          <Icon
+            icon="bi:person-vcard"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
             Employee Management
           </div>
         </li>
 
-        
-        <li onClick={()=>openComponent('catalogPage')} className={openPage.catalogPage?"menu-item selecteditem":"menu-item"}>
-          <span className="icon">&#9733;</span>
+        <li onClick={()=>openComponent('otherExpensePage')} className={openPage.otherExpensePage?"menu-item selecteditem":"menu-item"}>
+          {/* <span className="icon">&#9733;</span> */}
+          <Icon
+            icon="ph:money-wavy"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
             {" "}
-            Catalog{" "}
+            Other expenses{" "}
           </div>
         </li>
 
-        <li onClick={()=>openComponent('otherExpensePage')} className={openPage.otherExpensePage?"menu-item selecteditem":"menu-item"}>
-          <span className="icon">&#9733;</span>
+        <li onClick={()=>openComponent('transactionPage')} className={openPage.transactionPage?"menu-item selecteditem":"menu-item"} >
+          {/* <span className="icon">&#9998;</span> */}
+          <Icon
+            icon="material-symbols-light:library-books-outline"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
           <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
-            {" "}
-            Other expense{" "}
+            Transactions
           </div>
         </li>
+
+        
+        <li onClick={()=>openComponent('catalogPage')} className={openPage.catalogPage?"menu-item selecteditem":"menu-item"}>
+          {/* <span className="icon">&#9733;</span> */}
+          <Icon
+            icon="hugeicons:catalogue"
+            style={{
+              width: "1.5rem",
+              height: "1.5rem",
+              color: "rgb(82 78 70)",
+              cursor: "pointer",
+            }}
+           
+          />
+          <div className={sidebaropen ? "sidebarlist" : "sidebarlist close"}>
+            {" "}
+            Catalogue{" "}
+          </div>
+        </li>
+
+      
         
 
         {/* Add more sidebar items as needed */}

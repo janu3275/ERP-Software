@@ -14,8 +14,8 @@ const router = express.Router()
 
 
 
-router.get("/getall/:vendorId", authCompanyToken, authMarketToken , authUserToken, vendorPaymentsApi.getVendorPaymentsByVendorId);
-router.get("/getallvendorpayments", authCompanyToken, authMarketToken , authUserToken, vendorPaymentsApi.getAllVendorPayments);
+router.post("/getall/:vendorId", authCompanyToken, authMarketToken, authUserToken, vendorPaymentsApi.getVendorPaymentsByVendorId);
+router.get("/getallvendorpayments", authCompanyToken, authMarketToken, authUserToken, vendorPaymentsApi.getAllVendorPayments);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken, vendorPaymentsApi.addPaymentByVendorId);
 router.post("/update", authCompanyToken, authMarketToken , authUserToken, vendorPaymentsApi.updatePaymentByVendorId);
 router.delete("/delete", authCompanyToken, authMarketToken , authUserToken,  vendorPaymentsApi.deletePaymentByVendorId);

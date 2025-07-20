@@ -10,10 +10,10 @@ const UserSetting = ()=>{
   const navigate = useNavigate(); 
   console.log(user, company, marketplace, marketimg)
     return (
-    <div>
+    <div style={{padding:"5px"}}>
       
     { user && <div>
-    <div className='actiondiv'>
+    {/* <div className='actiondiv'>
     <div className='avatar' style={{height:"25px", width:"25px", margin:"0"}}>
     <Icon
                     icon="carbon:user-avatar-filled"
@@ -27,18 +27,18 @@ const UserSetting = ()=>{
       </div>
                 <div>{user}</div>
                
-      </div>
-        <button className='actiondiv' onClick={()=>{
+      </div> */}
+        <button className='primarybtndiv' style={{width:"-webkit-fill-available", color:"rgb(82, 78, 70)", fontWeight:"400"}} onClick={() => {
           clearUserData(setUserInfo)
           navigate('/userLogin')
-          }}>
+          }} >
             <div>
                  <Icon
                     icon="mdi:account-switch-outline"
                     style={{
                       width: "1.6rem",
                       height: "1.6rem",
-                      color: "black",
+                      color: "rgb(82, 78, 70)",
                       cursor:"pointer"
                     }}
                   />
@@ -50,7 +50,7 @@ const UserSetting = ()=>{
 
 
     { marketplace && marketimg && <div>
-    <div className='actiondiv'>
+    {/* <div className='actiondiv'>
       <div className='avatar' style={{height:"25px", width:"25px", margin:"0"}}>
                  <img
                  src={marketimg}
@@ -60,8 +60,8 @@ const UserSetting = ()=>{
       </div>
                 <div>{marketplace}</div>
                
-    </div>
-        <button className='actiondiv' onClick={()=>{
+    </div> */}
+        <button className='primarybtndiv' style={{width:"-webkit-fill-available", color:"rgb(82, 78, 70)", fontWeight:"400"}} onClick={()=>{
           clearMarketData(setMarketInfo, setUserInfo)
           navigate('/marketplace')
           }}>
@@ -71,7 +71,7 @@ const UserSetting = ()=>{
                     style={{
                       width: "1.6rem",
                       height: "1.6rem",
-                      color: "black",
+                      color: "rgb(82, 78, 70)",
                       cursor:"pointer"
                     }}
                   />
@@ -83,7 +83,7 @@ const UserSetting = ()=>{
 
    
     
-        { company && <button className='actiondiv' onClick={()=>{
+        { company && <button style={{width:"-webkit-fill-available", color:"rgb(82, 78, 70)", fontWeight:"400"}} className='primarybtndiv' onClick={()=>{
           clearCompanyData(setCompanyInfo, setMarketInfo, setUserInfo)
           navigate('/companyLogin')
           }}>
@@ -93,7 +93,7 @@ const UserSetting = ()=>{
                     style={{
                       width: "1.3rem",
                       height: "1.3rem",
-                      color: "black",
+                      color: "rgb(82, 78, 70)",
                       cursor:"pointer"
                     }}
                   />

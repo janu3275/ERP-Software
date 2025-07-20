@@ -22,7 +22,16 @@ const HoldOrders = () => {
       <div className="infocomp">
       
       <div> 
-      <div className="tabheading" style={{width:"auto"}}>Hold orders</div>
+      <div className="tabheading" style={{width:"auto"}}> <Icon
+            icon="hugeicons:hold-03"
+            style={{
+              width: "3rem",
+              height: "3rem",
+              color: "rgb(223 207 56)",
+              cursor:"pointer"
+              
+              }}
+          /> Hold orders</div>
         <AllOrder status='hold' />
       </div>
 

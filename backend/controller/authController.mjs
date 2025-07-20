@@ -14,13 +14,26 @@ const authApi = {
   // BODY VALIDATION
 
   const schema = Joi.object({
-    companyName: Joi.string().required(),
-    gstNumber: Joi.string()
-      .regex(/\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/)
-      .message(
-        "Invalid GST number. It should be 15 characters long and follow the specified format."
-      )
-      .required(),
+    companyID: Joi.string()
+      .required()
+      .min(6)
+      .max(50)
+      .pattern(/^[a-zA-Z0-9]*$/)
+      .messages({
+        'string.empty': 'Company name is required',
+        'string.min': 'Company name must be at least 6 characters long',
+        'string.max': 'Company name must be at most 50 characters long',
+        'string.pattern.base': 'Company name can only contain alphanumeric characters and no spaces'
+      }),
+    Password: Joi.string()
+      .required()
+      .min(8)
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+      .messages({
+        'string.empty': 'Password is required',
+        'string.min': 'Password must be at least 8 characters long',
+        'string.pattern.base': 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*?&), and cannot contain spaces'
+      })
   });
 
   let body = req.body;
@@ -42,10 +55,10 @@ const authApi = {
   // PROCEEDING TOWARDS REGISTERING COMPANY AND USER ---------
 
   try {
-    const hashedPassword = await bcrypt.hash(body.gstNumber, 10); //CREATING HASHED PASSWORD USING BCRYPT
+    const hashedPassword = await bcrypt.hash(body.Password, 10); //CREATING HASHED PASSWORD USING BCRYPT
 
     const companyinfo = (
-      await queryDB(postCompanyInfo, [body.companyName, hashedPassword])
+      await queryDB(postCompanyInfo, [body.companyID, hashedPassword])
     )?.rows[0]; //INSERTING COMPANY INFO
     console.log(" companyinfo --> ", companyinfo);
     if (companyinfo) {
@@ -68,13 +81,28 @@ const authApi = {
   // BODY VALIDATION
   console.log("login company request --->", req.body)
   const schema = Joi.object({
-    companyName: Joi.string().required(),
-    gstNumber: Joi.string()
-      .regex(/\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/)
-      .message(
-        "Invalid GST number. It should be 15 characters long and follow the specified format."
-      )
-      .required(),
+    
+    companyID: Joi.string()
+      .required()
+      .min(6)
+      .max(50)
+      .pattern(/^[a-zA-Z0-9]*$/)
+      .messages({
+        'string.empty': 'Company name is required',
+        'string.min': 'Company name must be at least 6 characters long',
+        'string.max': 'Company name must be at most 50 characters long',
+        'string.pattern.base': 'Company name can only contain alphanumeric characters and no spaces'
+      }),
+
+    Password: Joi.string()
+      .required()
+      .min(8)
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+      .messages({
+        'string.empty': 'Password is required',
+        'string.min': 'Password must be at least 8 characters long',
+        'string.pattern.base': 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*?&), and cannot contain spaces'
+      })
   });
 
   let body = req.body;
@@ -94,12 +122,12 @@ const authApi = {
   }
 
   // GET COMPANY INFO BASED ON COMPANY NAME
-  let getCompanyInfoqry = `select * from companyinfo where companyname = $1`;
+  let getCompanyInfoqry = `select * from companyinfo where company_id = $1`;
 
   // PROCEEDING TOWARDS REGISTERING COMPANY AND USER ---------
 
   try {
-    const companyinfo = (await queryDB(getCompanyInfoqry, [body.companyName]))?.rows[0];
+    const companyinfo = (await queryDB(getCompanyInfoqry, [body.companyID]))?.rows[0];
 
     if (!companyinfo) {
       return res
@@ -110,15 +138,16 @@ const authApi = {
           error: "Company name not found",
         });
     }
-    console.log("coming here", body.gstNumber, companyinfo)
-    const isMatch = await bcrypt.compare(body.gstNumber, companyinfo.gstnumber); //COMPARING PASSWORDS
+
+    console.log("coming here", body.Password, companyinfo)
+    const isMatch = await bcrypt.compare(body.Password, companyinfo.password); //COMPARING PASSWORDS
     console.log("coming here", isMatch)
     console.log("login companyinfo --> ", companyinfo);
 
     if (isMatch) {
-      // Create a JWT with user information and the secret key
+      // Create a JWT with company information and the secret key
       const token = jwt.sign(companyinfo, process.env.JWT_COMPANY_SECRET, {
-        expiresIn: "5h",
+        expiresIn: "8h"
       });
      
       return res
@@ -126,13 +155,15 @@ const authApi = {
         .json({
           success: true,
           message: "Company Login successfully",
-          data: { token, companyName: body.companyName },
+          data: { token: token, companyID: body.companyID }
         });
+
     } else {
       return res
         .status(200)
-        .json({ success: false, message: "GST Number mismatch", data: "" });
+        .json({ success: false, message: "password mismatch", data: "" });
     }
+
   } catch (error) {
     return res
       .status(200)

@@ -284,9 +284,15 @@ const vendorPOApi = {
     
         const schema = Joi.object({
             vendorId: Joi.number().integer().required(),
+            filters: Joi.object().required(),
+            nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            limit: Joi.number().integer().default(10) // Page size
         });
+
+        let body = {...req.params, ...req.body};
     
-        const { error, value } = schema.validate({ vendorId });
+        const { error, value } = schema.validate(body);
     
         if (error) {
             console.log(error.details);
@@ -296,6 +302,8 @@ const vendorPOApi = {
                 error: error.details,
             });
         }
+
+        const { previousCursor, nextCursor } = value
     
         const getAllPoQuery = `
         SELECT 
@@ -318,26 +326,56 @@ const vendorPOApi = {
         FROM 
             vendor_po AS po
         WHERE 
-            po.vendor_id = $1;
+            po.vendor_id = $1
+            AND ($2::date IS NULL OR po.po_date >= $2::date)
+            AND ($3::date IS NULL OR po.po_date <= $3::date)
+            AND ($4::text IS NULL OR po.note ILIKE '%' || $4::text || '%')
+            ${nextCursor ? `AND id > ${nextCursor}` : ''}
+            ${previousCursor ? `AND id < ${previousCursor}` : ''}
+            ORDER BY
+               po.id ASC
+            LIMIT
+             $5;    
     `;
     
     
         try {
+
+
+            const { filters, limit } = value;
+
+
+            const queryParams = [
+              value.vendorId,
+              filters.po_date.minValue || null,
+              filters.po_date.maxValue || null,
+              filters.note || null,
+              limit
+            ]
+            
             const poList = (
-                await queryDB(getAllPoQuery, [value.vendorId])
+                await queryDB(getAllPoQuery, queryParams)
             ).rows;
     
             if (poList) {
+
+                const nextCursor = poList[poList.length - 1]?.id || null;
+                const previousCursor = poList[0]?.id || null;
+
                 res.status(200).json({
                     success: true,
                     message: "Purchase orders retrieved successfully",
                     data: poList,
+                    nextCursor: poList.length === limit ? nextCursor : null, // Indicate if there are more results
+                    previousCursor: poList.length === limit ? previousCursor : null, // Indicate if there are previous results
                 });
             } else {
                 res.status(404).json({
                     success: false,
                     message: "No purchase orders found",
                     data: [],
+                    nextCursor: null, 
+                    previousCursor: null
                 });
             }
         } catch (error) {

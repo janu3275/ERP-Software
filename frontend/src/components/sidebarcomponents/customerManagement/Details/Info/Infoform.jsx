@@ -104,7 +104,7 @@ const Customerform = ({ selectedCustomer,UpdateCustomer}) => {
   return (
     
     <form onSubmit={handleSubmit(data=>UpdateCustomer({data, Customerid:`${selectedCustomer.id}`}))}>
-       <div style={{ gap: "20px", flexDirection: "column", display: "flex" }}>
+       <div style={{ gap: "20px", flexDirection: "column", display: "flex", marginTop:"30px" }}>
        <div className="primaryformsection">
         <div className="primaryformsectiontitle">Personal details</div>
         <div className="primaryformsectioncontent">

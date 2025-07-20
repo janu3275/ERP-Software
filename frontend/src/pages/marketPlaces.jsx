@@ -9,10 +9,11 @@ import factoryfour from "../assets/avatar/factoryfour.jpg";
 import factoryfive from "../assets/avatar/factoryfive.jpg";
 import factorysix from "../assets/avatar/factorysix.jpg";
 import factoryseven from "../assets/avatar/factoryseven.jpg";
+import shopwall from "../assets/images/shop_609752.png";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import { setMarketSession } from "../commonfn";
-import { useCommonInfoStore } from "../../strore/notificationStore";
+import { generateRandomId, setMarketSession } from "../commonfn";
+import { useCommonInfoStore, useNotificationStore } from "../../strore/notificationStore";
 import Marketplaces from "../assets/singlecomponents/markets/markets";
 import PopoverDemo from "../assets/singlecomponents/popover/popover";
 import MarketPlaceAdditionform from "../authforms/marketPlaceAdditionform";
@@ -23,11 +24,12 @@ import Navbar from "../components/globalcomponents/navbar";
 const MarketPlaces = () => {
   const {setMarketInfo} = useCommonInfoStore();
   const navigate = useNavigate();
+  const {addNotification} = useNotificationStore();
 
   const [chosenavatar, setchosenavatar] = useState(shopIcon);
   const [showAvatarCollection, setshowAvatarCollection] = useState(false);
   const [markets, setmarkets] = useState([]);
-
+  const [chosenMarketToEdit, setChosenMarketToEdit] = useState(null);
   const [openLoginLayout, setOpenLoginLayout] = useState(false);
 
   const avatararr = [
@@ -38,10 +40,10 @@ const MarketPlaces = () => {
     factorysix,
     factorythree,
     factorytwo,
-    shopIcon,
+    shopIcon
   ];
 
-  useEffect(()=>{
+  useEffect(() => {
   getAllUsersMarkets()
   },[])
 
@@ -54,6 +56,8 @@ const MarketPlaces = () => {
   };
 
   const openlayout = ()=>{
+    setChosenMarketToEdit(null)
+    setchosenavatar(factorytwo)
     setOpenLoginLayout(true)
   }
 
@@ -70,11 +74,90 @@ const MarketPlaces = () => {
       let res = await Axios.post(`/marketplace/add`, payload);
       if(res.data.success){
         getAllUsersMarkets()
+        closelayout()
       }
     } catch (error) {
       console.log(error);
     }
   };
+
+  const updateMarketPlace = async ({data, market_id}) => {
+    try {
+      let payload = {
+        name: data.Name,
+        image_src: chosenavatar,
+        id: market_id
+      }
+      let res = await Axios.post(`/marketplace/update`, payload);
+      if(res.data.success){
+        addNotification({
+          id: generateRandomId(5),
+          type: "success",
+          message: "Marketplace updated successfully!",
+          displaytime: 3000,
+        });
+        getAllUsersMarkets()
+        closelayout()
+      }else{
+        addNotification({
+          id: generateRandomId(5),
+          type: "error",
+          message: "error updating marketplace!",
+          displaytime: 3000,
+        })
+      }
+    } catch (error) {
+      console.log(error);
+      addNotification({
+        id: generateRandomId(5),
+        type: "error",
+        message: `error updating marketplace!, ${error}`,
+        displaytime: 3000,
+      })
+    }
+  };
+
+
+  const deleteMarketPlace = async (id) => {
+
+    addNotification({
+      id: generateRandomId(5),
+      type: "warning",
+      message: "Marketplace deletion is restricted, please contact your tech provider!",
+      displaytime: 3000,
+    });
+
+    return
+
+    try {
+      
+      let res = await Axios.delete(`/marketplace/delete?market_id=${id}`);
+      if(res.data.success){
+        addNotification({
+          id: generateRandomId(5),
+          type: "success",
+          message: "Marketplace deleted successfully!",
+          displaytime: 3000,
+        });
+        getAllUsersMarkets()
+      }else{
+        addNotification({
+          id: generateRandomId(5),
+          type: "error",
+          message: "error deleting marketplace!",
+          displaytime: 3000,
+        })
+      }
+    } catch (error) {
+      console.log(error);
+      addNotification({
+        id: generateRandomId(5),
+        type: "error",
+        message: `error deleting marketplace!, ${error}`,
+        displaytime: 3000,
+      })
+    }
+  }
 
   const getAllUsersMarkets = async () => {
     try {
@@ -112,16 +195,63 @@ const MarketPlaces = () => {
         
   };
 
+  const chooseMarketToEdit = (info) => {
+    setChosenMarketToEdit(info)
+    chooseAvatar(info.image_src)
+    setOpenLoginLayout(true)
+  }
+
 
 
   return (
     <>
     <Navbar />
-    <div className="mainlayout">
+    <div className="mainlayout" style={{background:"white"}}>
       <div
-      style={{padding:"0px 40px", fontSize:"xx-large", width:"calc(100% - 400px)"}}
-      ><h1>My marketplaces !</h1></div>
-      <Marketplaces marketrarr={markets} selectmarket={selectMarket} openlayout={openlayout} />
+      style={{padding:"0px 40px", fontSize:"xxx-large", width:"calc(100% - 400px)", marginBottom:"20px"}}
+      ><div style={{color:"#414141", display:"flex", alignItems:"center", gap:"20px"}}> 
+      {/* <img src={shopwall} alt="shop image" style={{width:"200px", height:"200px"}}/> */}
+      <Icon
+                    icon="flat-color-icons:shop"
+                    style={{
+                      width: "5rem",
+                      height: "5rem",
+                      color: "rgb(0 149 79)",
+                      cursor:"pointer",
+                      // margin:"30px",
+                      
+
+                      
+                    }}
+                    />
+       My marketplaces !</div>
+      {/* <button
+        className='tertiarybtn'
+        onClick={openlayout}
+        
+       >
+
+       
+        <Icon
+                    icon="gala:add"
+                    style={{
+                      width: "1rem",
+                      height: "1rem",
+                      color: "rgb(0 149 79)",
+                      cursor:"pointer",
+                      // margin:"30px",
+                      
+
+                      
+                    }}
+                    />
+        
+
+       
+        <div style={{padding:"10px", fontWeight:"500", color:"#414141", fontSize:"15px"}}>Add marketplace</div>
+        </button> */}
+      </div>
+      <Marketplaces marketrarr={markets} selectmarket={selectMarket} openlayout={openlayout} chooseMarketToEdit={chooseMarketToEdit}  deleteMarketPlace={deleteMarketPlace} />
 
       <div className= {openLoginLayout?"formlayout opensideform":"formlayout"} 
       style={{
@@ -129,10 +259,11 @@ const MarketPlaces = () => {
       }}
       >
         <button
-        className="IconButton"
+        className="iconbtn1"
         style={{
           padding:"5px",
-          left:"20px"
+          left:"20px",
+          top:"60px"
         }}
         onClick={closelayout}
         >
@@ -141,7 +272,7 @@ const MarketPlaces = () => {
                     style={{
                       width: "1.5rem",
                       height: "1.5rem",
-                      color: "rgb(95, 0, 95)",
+                      color: "black",
                       cursor:"pointer"
                     }}
                   />
@@ -186,7 +317,7 @@ const MarketPlaces = () => {
 
             <img src={chosenavatar} alt="shop" />
           </div>
-           <MarketPlaceAdditionform addNewMarketPlace={addNewMarketPlace} />
+           <MarketPlaceAdditionform addNewMarketPlace={addNewMarketPlace} selectedMarket={chosenMarketToEdit} updateMarketPlace={updateMarketPlace}/>
         </div>
         }
       </div>

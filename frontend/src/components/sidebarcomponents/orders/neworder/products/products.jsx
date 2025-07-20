@@ -57,6 +57,7 @@ const Productsinfo = ({
                 setOpen={setOpenOrderForm}
                 buttontext="Add Product"
                 btnclass = 'tertiarybtn'
+                contentclass='productinputdialog'
               >
                 {(props) => (
                   <Orderform

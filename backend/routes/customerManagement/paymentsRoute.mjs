@@ -14,7 +14,7 @@ const router = express.Router()
 
 
 
-router.get("/getall/:customer_id",authCompanyToken, authMarketToken, authUserToken, custPaymentHistoryApi.getAllPaymentsByCustomer);
+router.post("/getall/:customer_id",authCompanyToken, authMarketToken, authUserToken, custPaymentHistoryApi.getAllPaymentsByCustomer);
 router.get("/getallcustomerpayments",authCompanyToken, authMarketToken, authUserToken, custPaymentHistoryApi.getAllCustomerPayments);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken, custPaymentHistoryApi.addCustomerPayment);
 router.post("/update", authCompanyToken, authMarketToken , authUserToken, custPaymentHistoryApi.updatePayment);

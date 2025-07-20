@@ -260,23 +260,7 @@ ORDER BY id ASC
 LIMIT $11;
 `
 
-// :
-// `
-// SELECT *
-// FROM customerinfo
-// WHERE market_id = $1
-//   AND ($2::text IS NULL OR name LIKE '%' || $2::text || '%')
-//   AND ($3::text IS NULL OR mobile_number LIKE '%' || $3::text || '%')
-//   AND ($4::text IS NULL OR whatsapp_number LIKE '%' || $4::text || '%')
-//   AND ($5::text IS NULL OR email_address LIKE '%' || $5::text || '%')
-//   AND ($6::text IS NULL OR address LIKE '%' || $6::text || '%')
-//   AND ($7::text IS NULL OR gstin LIKE '%' || $7::text || '%')
-//   AND ($8::text IS NULL OR pan LIKE '%' || $8::text || '%')
-//   AND ($9::text IS NULL OR adhaar_number LIKE '%' || $9::text || '%')
-//   AND ($10::text IS NULL OR note LIKE '%' || $10::text || '%')
-//   ORDER BY id ASC
-//   LIMIT $11;
-// `;
+
 
     try {
       const { filters, limit } = value;
@@ -295,20 +279,7 @@ LIMIT $11;
         limit
       ]
       
-      // :[
-      //   value.market_id,
-      //   filters.name || null,
-      //   filters.mobile_number || null,
-      //   filters.whatsapp_number || null,
-      //   filters.email_address || null,
-      //   filters.address || null,
-      //   filters.gstin || null,
-      //   filters.pan || null,
-      //   filters.adhaar_number || null,
-      //   filters.note || null,
-      //   limit
-      // ];
-
+  
       const allcustomers = (await queryDB(getCutomerQry, queryParams)).rows;
 
       if (allcustomers.length > 0) {

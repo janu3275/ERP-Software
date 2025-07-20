@@ -36,7 +36,7 @@
 }
 
 .normalDialog{
-    padding: 0;
+    /* padding: 0; */
     overflow: hidden;
     max-width: 60vw;
 }
@@ -64,10 +64,23 @@
     font-weight: 500;
     width: auto;
     color: rgb(55, 53, 47);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.primaryformsectiontitle2{
+ 
+    margin-top: 0px;
+    /* padding-bottom: 12px; */
+    font-size: 17px;
+    font-weight: 500;
+    width: auto;
+    color: rgb(55, 53, 47);
 }
 
 .primaryformsectioncontent{
-    /* gap: 20px; */
+    gap: 10px;
     flex-direction: column;
     display: flex;
     margin-bottom: 10px;
@@ -78,5 +91,8 @@
     padding: 10px 0px;
     font-size: 19px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 

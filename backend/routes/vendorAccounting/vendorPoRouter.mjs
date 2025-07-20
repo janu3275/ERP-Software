@@ -14,7 +14,7 @@ const router = express.Router()
 
 
 
-router.get("/getall/:vendorId", authCompanyToken, authMarketToken , authUserToken, vendorPOApi.getAllPoByVendorId);
+router.post("/getall/:vendorId", authCompanyToken, authMarketToken , authUserToken, vendorPOApi.getAllPoByVendorId);
 router.post("/add", authCompanyToken, authMarketToken , authUserToken, vendorPOApi.addVendorPO);
 router.post("/update", authCompanyToken, authMarketToken , authUserToken,vendorPOApi.updateVendorPO);
 router.delete("/delete", authCompanyToken, authMarketToken , authUserToken,  vendorPOApi.deleteVendorPO);

@@ -176,6 +176,7 @@ const getAllCustomerPayments = async( customerId ) => {
       let CustomerPaymentsarr = [...res.data.data]
    
       return CustomerPaymentsarr
+      // return res.data
     
     }else{
       throw new Error('Failed to fetch all customer payments', customerId)
@@ -324,7 +325,15 @@ const addCustomerPayment = async ( data , customerId ) => {
 
     let body = {
       ...data,
-      customerId
+      customer_id: customerId,
+      paidOptionInfo: data.paidOptionInfo
+          .map((option) => {
+            return {
+              via: option.via,
+              checked: true,
+              amount: parseFloat(option.amount),
+            };
+          })
     }
 
     let res = await Axios.post(`/CustomerPayment/add`, body )
@@ -333,12 +342,12 @@ const addCustomerPayment = async ( data , customerId ) => {
       return res.data
      
     }else{
-      throw new Error('Failed to create customer');
+      throw new Error('Failed to create customer payment');
     }
 
   } catch (error) {
     console.log(error)
-    throw new Error('Failed to create customer');
+    throw new Error('Failed to create customer payment');
   }
 
 }

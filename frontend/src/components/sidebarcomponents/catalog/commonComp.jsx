@@ -59,7 +59,7 @@ const CommonComp = ({selectedtab}) => {
       }else if(selectedtab.glassProducts){
         return "Glass products"
       }else if(selectedtab.otherProducts){
-        return "Other proucts"
+        return "Other products"
       }else if(selectedtab.units){
         return "Units"
       }else if(selectedtab.emiTypes){

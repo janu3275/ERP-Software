@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import { useEffect} from 'react';
 import Labelwithtextfield from '../../../../assets/formcomponents/textfield';
 import Labelwithtextarea from '../../../../assets/formcomponents/textarea';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 
 
@@ -105,8 +106,18 @@ const Customerform = ({ createNewCustomer, selectedCustomer, UpdateCustomer }) =
     
     <form className="normalcustomerDialogForm" onSubmit={handleSubmit(data=>selectedCustomer?UpdateCustomer({data, customerid:`${selectedCustomer.id}`}):createNewCustomer(data))}>
         <div style={{ gap: "20px", flexDirection: "column", display: "flex", padding:"0px 100px", maxWidth:"600px", margin:"auto", marginBottom:"100px"  }}>
+        <div className='formheading'><Icon
+          icon="bi:person"
+          style={{
+            width: "1.8rem",
+            height: "1.8rem",
+            color: "rgb(30, 171, 7)",
+            cursor:"pointer"
+            
+            }}
+        />{selectedCustomer?'Update customer':'Add customer'}</div>
        <div className="primaryformsection">
-        <div className="primaryformsectiontitle">Personal details</div>
+        <div className="primaryformsectiontitle"> Personal details</div>
         <div className="primaryformsectioncontent">
          
           <Labelwithtextfield

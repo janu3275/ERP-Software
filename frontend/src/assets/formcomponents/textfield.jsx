@@ -15,7 +15,7 @@ const Labelwithtextfield = ({register,errors,name,label,type,labelclassname,text
     {label.length>0 && <Label.Root className={labelclassname + " LabelRoot"} htmlFor={name}>{label}</Label.Root>}
     <div style={{display:"flex", flexDirection:"column", gap:"5px"}}>
     <input placeholder={placeholder} min={0}  className={textfieldclassname + " Input"} type={type} id={name} {...register(name, { required: true })}   />
-    <div style={{height:"1rem"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div>}</div>
+    {errors[name] && <div style={{height:"1rem"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"rgb(252 0 0)"}}>{errors[name].message}</div>}</div>}
     </div>
   </div>
   )

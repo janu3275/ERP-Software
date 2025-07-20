@@ -8,6 +8,8 @@ import Calendarform from '../../../../../assets/formcomponents/calender/calender
 import ImageUpload from '../../../../../assets/formcomponents/imageUpload/imageUpload.jsx';
 import { calculatePaid, paidOptionInfoArr } from '../../../../../commonfn.jsx';
 import PaymentFormComp from '../../../../../assets/formcomponents/PaymentComp/Payment.jsx';
+import Labelwithtextfield from '../../../../../assets/formcomponents/textfield.jsx';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 
 
@@ -15,15 +17,18 @@ const CustomerPaymentform = ({ createNewCustomerPayment, selectedCustomerPayment
   
  
   const schema = yup.object().shape({
-    paidOptionInfo: yup.array().test('totalAmount', 'Total amount must be greater than 0', function(value) {
-      const totalAmount = calculatePaid(value);
-      console.log("total amount", totalAmount, value)
-      return totalAmount > 0;
-  }),
-    
+
+    Cash: yup.number().min(0),
+    UPI: yup.number().min(0),
+    Cheque: yup.number().min(0),
+    Other: yup.number().min(0),
     payment_date: yup.date().required("Payment date is required"),
     images: yup.array().min(1, 'Min one image is required').required("Images are required"),
     description: yup.string()
+  }).test('totalAmount', 'Total amount must be greater than 0', function(value) {
+    const { Cash, UPI, Cheque, Other } = value;
+    const totalAmount = Cash + UPI + Cheque + Other;
+    return totalAmount > 0;
   });
 
   const { register, handleSubmit, formState, reset,  control } = useForm({
@@ -31,10 +36,13 @@ const CustomerPaymentform = ({ createNewCustomerPayment, selectedCustomerPayment
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-        paidOptionInfo: paidOptionInfoArr,
-        payment_date: "",
-        images: [],
-        description: "",
+      Cash:0,
+      UPI:0,
+      Cheque:0,
+      Other:0,
+      payment_date: "",
+      images: [],
+      description: ""
     }
     
   });
@@ -51,7 +59,11 @@ const CustomerPaymentform = ({ createNewCustomerPayment, selectedCustomerPayment
    
       reset({
 
-        paidOptionInfo: selectedCustomerPayment.paidOptionInfo,
+        
+        Cash: selectedCustomerPayment?.paidOptionInfo[0]?.amount || 0,
+        UPI: selectedCustomerPayment?.paidOptionInfo[1]?.amount || 0,
+        Cheque: selectedCustomerPayment?.paidOptionInfo[2]?.amount || 0,
+        Other: selectedCustomerPayment?.paidOptionInfo[3]?.amount || 0,
         payment_date: selectedCustomerPayment.payment_date,
         images: selectedCustomerPayment.images,
         description: selectedCustomerPayment.description,
@@ -61,18 +73,43 @@ const CustomerPaymentform = ({ createNewCustomerPayment, selectedCustomerPayment
   },[selectedCustomerPayment, reset])
 
  
+  const convertData = (data) => {
+    const infoarr = [...paidOptionInfoArr]
+    const {Cash, UPI, Cheque, Other} = data;
+    infoarr[0].amount = Cash;
+    infoarr[1].amount = UPI;
+    infoarr[2].amount = Cheque;
+    infoarr[3].amount = Other;
+  
+    return {
+      payment_date: data.payment_date,
+      paidOptionInfo: infoarr,
+      images: data.images,
+      description: data.description
+    }
+  
+   }
 
  
 
-console.log(errors, selectedCustomerPayment)   
+console.log(errors, selectedCustomerPayment, isValid)   
 
   
 
   return (
     
-    <form  className='formclass' onSubmit={handleSubmit(data=>selectedCustomerPayment?UpdateCustomerPayment({data, Paymentid:`${selectedCustomerPayment.id}`}):createNewCustomerPayment(data))}>
+    <form  className='formclass' onSubmit={handleSubmit(data=>selectedCustomerPayment?UpdateCustomerPayment({data:convertData(data), Paymentid:`${selectedCustomerPayment.id}`}):createNewCustomerPayment(convertData(data)))}>
        <div style={{ flexDirection: "column", display: "flex" , width:"fit-content", margin:"0px 20px", marginTop:"0", marginBottom:"70px"}}>
-        <div className='formheading'>{selectedCustomerPayment?'Update payment': 'Add payment'}</div>
+        <div className='formheading'><Icon
+  icon="ph:money"
+  style={{
+    width: "1.8rem",
+    height: "1.8rem",
+    color: "rgb(30 171 7)",
+    cursor:"pointer"
+    
+    }}
+/>{selectedCustomerPayment?'Update payment': 'Add payment'}</div>
      <div style={{display:"flex", gap:"20px"}}>
         
 
@@ -108,33 +145,37 @@ console.log(errors, selectedCustomerPayment)
 
          </div>
            
-        
-
-
-           <Controller
-            name="paidOptionInfo"
-            control={control}
-            rules={{ required: true }}
-            // defaultValue={null}
-            
-            render={({ field }) => (
-              
-             
-            <PaymentFormComp
-
-             name='paidOptionInfo'
-             value = {field.value}
-             errors={errors}
-             onChange = {field.onChange}
-             forwardedRef={field.ref}
-
-            {...field}
-
-            />
-
-           
-             )}
+         <div style={{display:"flex", flexDirection:"column", padding:"10px 0px", gap:"10px", marginBottom:"1rem"}}  >
+    {paidOptionInfoArr.map((option,index)=><div key={index} style={{display:"flex", alignItems:"center", justifyContent:"space-between",paddingTop:index===0 ? "0":"0px", paddingBottom:(index+1)===paidOptionInfoArr.length ? "0":"0px", gap:"10px",  borderBottom:(index+1)!==paidOptionInfoArr.length && "0px solid rgb(240 240 240)"}}>
+    <div style={{display:"flex", alignItems:"center", gap:"10px"}}>
+    {option.icon}
+    <div style={{ minWidth:'120px', display:"flex", justifyContent:"start" }}>{option.label}</div>
+    </div>
+    <div  style={{ minWidth:'120px', display:"flex", flexDirection:"column" }}>
+       
+          <Labelwithtextfield
+            register={register}
+            errors={errors}
+            name={option.via}
+            labelclassname="formlabel"
+            textfieldclassname="primarytextfieldclass"
+            divclassname="primarytextdivclass"
+            defaultValue=""
+            label=""
+            direction="row"
+            type="number"
+            placeholder=""
           />
+
+     
+     </div>
+    </div>)}
+    
+
+    </div>
+
+
+     
 
           <button className='secondarybtn' onClick={(e)=> {
                 console.log("clicked")

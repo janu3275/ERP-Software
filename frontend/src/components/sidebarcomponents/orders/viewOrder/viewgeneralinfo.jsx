@@ -46,6 +46,7 @@ const ViewGeneralinfo = ({ generalInfo }) => {
               <div style={{display:"flex", gap:"15px"}}>
               <div >Measured by:</div> {generalInfo.measuredby}
               </div>
+            
             </div>
 
             <div
@@ -66,7 +67,22 @@ const ViewGeneralinfo = ({ generalInfo }) => {
                 <div>Order to be dilevered by :</div>
                <div>{generalInfo.completionDate}</div>
               </div>
+
+              <div
+                style={{
+                  paddingBottom: "0",
+                  display: "flex",
+                  gap: "15px",
+                  alignItems: "center",
+                }}
+              >
+                <div>Shipping address :</div>
+               <div>{generalInfo.shipping_address}</div>
+              </div>
+
             </div>
+          
+
           </div>
         </div>
         

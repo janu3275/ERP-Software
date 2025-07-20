@@ -10,9 +10,15 @@ const vendorPaymentsApi = {
     
         const schema = Joi.object({
             vendorId: Joi.number().integer().required(),
+            filters: Joi.object().required(),
+            nextCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            previousCursor: Joi.number().integer().allow(null), // Cursor for pagination
+            limit: Joi.number().integer().default(10) // Page size
         });
+
+        let body = {...req.params, ...req.body};
     
-        const { error, value } = schema.validate({ vendorId });
+        const { error, value } = schema.validate(body);
     
         if (error) {
             console.log(error.details);
@@ -22,14 +28,42 @@ const vendorPaymentsApi = {
                 error: error.details,
             });
         }
+
+        const { previousCursor, nextCursor } = value
     
         const getVendorPaymentsQuery = `
-            SELECT * FROM vendor_payments WHERE vendor_id = $1;`;
+            SELECT * FROM vendor_payments AS vp 
+            WHERE 
+            vendor_id = $1
+            AND ($2::date IS NULL OR vp.payment_date >= $2::date)
+            AND ($3::date IS NULL OR vp.payment_date <= $3::date)
+            AND ($4::numeric IS NULL OR vp.amount >= $4::numeric)
+            AND ($5::numeric IS NULL OR vp.amount <= $5::numeric)
+            AND ($6::text IS NULL OR vp.note ILIKE '%' || $6::text || '%')
+            ${nextCursor ? `AND id > ${nextCursor}` : ''}
+            ${previousCursor ? `AND id < ${previousCursor}` : ''}
+            ORDER BY
+               vp.id ASC
+            LIMIT
+             $7;`;
     
         try {
 
+            const { filters, limit } = value;
+
+
+            const queryParams = [
+              value.vendorId,
+              filters.payment_date.minValue || null,
+              filters.payment_date.maxValue || null,
+              filters.amount.minValue || null,
+              filters.amount.maxValue || null,
+              filters.note || null,
+              limit
+            ]
+
             let vendorPayments = (
-                await queryDB(getVendorPaymentsQuery, [value.vendorId])
+                await queryDB(getVendorPaymentsQuery, queryParams)
             ).rows;
 
             vendorPayments = vendorPayments.map((payment) => {
@@ -40,18 +74,30 @@ const vendorPaymentsApi = {
             });
     
             if (vendorPayments) {
+
+                const nextCursor = vendorPayments[vendorPayments.length - 1]?.id || null;
+                const previousCursor = vendorPayments[0]?.id || null;
+
                 res.status(200).json({
                     success: true,
                     message: "Vendor payments retrieved successfully",
                     data: vendorPayments,
+                    nextCursor: vendorPayments.length === limit ? nextCursor : null, // Indicate if there are more results
+                    previousCursor: vendorPayments.length === limit ? previousCursor : null, // Indicate if there are previous results
                 });
+
             } else {
+
                 res.status(404).json({
                     success: false,
                     message: "No vendor payments found",
                     data: [],
+                    nextCursor: null, 
+                    previousCursor: null
                 });
+
             }
+
         } catch (error) {
             return res.status(500).json({
                 success: false,

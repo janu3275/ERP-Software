@@ -14,7 +14,7 @@ const Labelwithtextarea = ({register,errors,name,defaultValue,label,direction,ty
   >
     {label.length>0 && <Label.Root className={labelclassname + " LabelRoot"} htmlFor={name}>{label}</Label.Root>}
     <textarea className={textfieldclassname + " Textarea"}  type={type} id={name} {...register(name, { required: true })} defaultValue={defaultValue} />
-    <div style={{height:"1rem"}}>{errors[name] && <div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div>}</div>
+    {errors[name] && <div style={{height:"1rem"}}><div style={{fontSize:"0.8rem", color:"red"}}>{errors[name].message}</div></div>}
   </div>
   )
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Axios } from "../../../../../utils/axios.mjs";
@@ -50,11 +49,13 @@ const getAllProducts = async () => {
           items: newarr
         },
       ];
-      setitems((prev)=>{
+
+      setitems((prev) => {
        return {
         ...prev,
         productItems: items
        }
+
       })
     }
   } catch (error) {

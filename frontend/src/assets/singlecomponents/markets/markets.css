@@ -1,8 +1,8 @@
 .market-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   grid-gap: 40px;
-  max-height: 500px;
+  /* max-height: 500px; */
   overflow-y: auto;
   /* position: absolute; */
   /* max-width: calc(100% - 500px); */
@@ -19,7 +19,7 @@
   
   .singlemarketplace{
     padding: 10px;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    /* box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; */
     background-color: white;
     display: flex;
     justify-content: center;
@@ -28,12 +28,79 @@
     height: fit-content;
     flex-direction: column;
     cursor: pointer;
+    position: relative;
+    height: 180px;
+    border: 1px solid rgba(55, 53, 47, 0.16);
+    transition: background 20ms ease-in 0s;
   }
 
+  .singlemarketplace:hover{
+    background-color: rgba(163, 163, 163, 0.11);
+   }
+ 
+   .singlemarketplace:active{
+     background-color: rgba(163, 163, 163, 0.203);
+    }
+ 
+   .singlemarketplace:focus{
+    /* border: solid 1px black; */
+     box-shadow: 0 0 0 2px rgb(151, 190, 238);
+     border: 0;
+   }
 
-
-  .singlemarketplace:focus{
-    border: solid 4px black;
+  .marketicons{
+    border-radius: 8px;
+    padding: 4px;
   }
 
-  
+  .marketicons:hover{
+    background-color: rgba(0, 0, 0, 0.049);
+  }
+
+  .marketicons:focus{
+    background-color: rgba(0, 0, 0, 0.087);
+  }
+
+  .truncate {
+    width: 150px; /* Set the desired width */
+    white-space: nowrap; /* Prevent text from wrapping to the next line */
+    overflow: hidden; /* Hide any overflowing content */
+    text-overflow: ellipsis; /* Display ellipsis (...) for overflowing text */
+   
+   
+
+  }
+
+  .dotsbtn{
+    user-select: none;
+    
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 4px;
+   
+    /* padding: 8px 12px; */
+    width: fit-content;
+    /* font-size: 15px; */
+    line-height: 1;
+   
+    transition: background 20ms ease-in 0s;
+  }
+
+  .dotsbtn:hover{
+   background-color: rgba(163, 163, 163, 0.11);
+  }
+
+  .dotsbtn:active{
+    background-color: rgba(163, 163, 163, 0.203);
+   }
+
+   .dot-pop-content{
+    min-width: 100px;
+    padding: 3px !important;
+   }
+
+
+

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { Axios } from "../../../utils/axios.mjs"
 
 // ******************************************************************** GET ALL VENDOR HOOK *********************************************************************//
@@ -70,6 +70,7 @@ const returnVendorInfoById = async(getVendorSuccessfn, vendorId) => {
 export const useGetVendorByID = ( getVendorSuccessfn, vendorId ) => {
 
   return useQuery({ 
+
     queryKey: [`vendors-${vendorId}`], 
     queryFn:()=>returnVendorInfoById( getVendorSuccessfn, vendorId ),
     staleTime: 1000 * 60 * 60,
@@ -81,7 +82,7 @@ export const useGetVendorByID = ( getVendorSuccessfn, vendorId ) => {
 
 // ******************************************************************** GET VENDOR BILLS *********************************************************************//
 
-const getAllVendorBills = async( vendorId, product_type ) => {
+const getAllVendorBills = async({ vendorId, getVendorBillsSuccessfn, filters, pageParam,  product_type }) => {
 
   try {
 
@@ -90,15 +91,30 @@ const getAllVendorBills = async( vendorId, product_type ) => {
       product_type
     }
 
+    let body = {
+      filters: JSON.parse(filters),
+      nextCursor: pageParam,
+      previousCursor: null,
+      limit: 100 // or whatever page size you need
+    } 
+
     const queryString = new URLSearchParams(params).toString();
-    let res = await Axios.get(`/VendorBill/getall?${queryString}`)
+    let res = await Axios.post(`/VendorBill/getall?${queryString}`, body)
 
     if(res.data.success){
       console.log(res.data.data)
       let VendorBillsarr = [...res.data.data]
+
+      if(getVendorBillsSuccessfn){
+      
+        getVendorBillsSuccessfn(VendorBillsarr)
+
+      }
    
-      return VendorBillsarr
+      return res.data
     
+    }else{
+      throw new Error('Failed to fetch all vendor bills', vendorId)
     }
 
   } catch (error) {
@@ -108,14 +124,21 @@ const getAllVendorBills = async( vendorId, product_type ) => {
 
 }
 
-export const useGetVendorBills = ( vendorId, product_type ) => {
+export const useGetVendorBills = ( vendorId, product_type, getVendorBillsSuccessfn, filters ) => {
 
-  return useQuery({ 
+  return useInfiniteQuery({ 
     
-    queryKey: [`vendorBills-${vendorId}`], 
-    queryFn:()=>getAllVendorBills( vendorId, product_type ),
+    queryKey: [`vendorBills-${vendorId}`, filters], 
+    queryFn:({queryKey, pageParam})=>getAllVendorBills({ vendorId, getVendorBillsSuccessfn, filters: queryKey[1], pageParam,  product_type }),
+    initialPageParam: null, 
     staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 10
+    gcTime: 1000 * 60 * 10,
+    getNextPageParam: ( lastPage, allPages, lastPageParam, allPageParams ) => {
+      console.log(lastPage, allPages, lastPageParam, allPageParams)
+      return lastPage?.nextCursor || undefined
+     },
+     // getPreviousPageParam: (firstPage) => firstPage?.prevCursor || undefined,
+     maxPages:3
 
   })
 
@@ -123,18 +146,31 @@ export const useGetVendorBills = ( vendorId, product_type ) => {
 
 // ******************************************************************** GET VENDOR PAYMENT *********************************************************************//
 
-const getAllVendorPayments = async( vendorId ) => {
+const getAllVendorPayments = async({ vendorId, getVendorPaymentsSuccessfn, filters, pageParam }) => {
 
   try {
 
-   let res = await Axios.get(`/VendorPayment/getall/${vendorId}`)
+    let body = {
+      filters: JSON.parse(filters),
+      nextCursor: pageParam,
+      previousCursor: null,
+      limit: 100 // or whatever page size you need
+    } 
+
+   let res = await Axios.post(`/VendorPayment/getall/${vendorId}`, body)
 
     if(res.data.success){
 
       console.log(res.data.data)
       let VendorPaymentsarr = [...res.data.data]
+
+      if(getVendorPaymentsSuccessfn){
+      
+        getVendorPaymentsSuccessfn(VendorPaymentsarr)
+
+      }
    
-      return VendorPaymentsarr
+      return res.data
     
     }else{
       throw new Error('Failed to fetch all vendor payments', vendorId)
@@ -147,14 +183,21 @@ const getAllVendorPayments = async( vendorId ) => {
 
 }
 
-export const useGetVendorPayments = ( vendorId ) => {
+export const useGetVendorPayments = ( vendorId, getVendorPaymentsSuccessfn, filters ) => {
 
-  return useQuery({ 
+  return useInfiniteQuery({ 
 
-    queryKey: [`vendorPayments-${vendorId}`], 
-    queryFn:()=>getAllVendorPayments( vendorId ),
+    queryKey: [`vendorPayments-${vendorId}`, filters], 
+    queryFn:({queryKey, pageParam})=>getAllVendorPayments({ vendorId, getVendorPaymentsSuccessfn, filters: queryKey[1], pageParam }),
+    initialPageParam:null, 
     staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 10
+    gcTime: 1000 * 60 * 10,
+    getNextPageParam: ( lastPage, allPages, lastPageParam, allPageParams ) => {
+      console.log(lastPage, allPages, lastPageParam, allPageParams)
+      return lastPage?.nextCursor || undefined
+     },
+     // getPreviousPageParam: (firstPage) => firstPage?.prevCursor || undefined,
+     maxPages:3
 
   })
 
@@ -162,18 +205,31 @@ export const useGetVendorPayments = ( vendorId ) => {
 
 // ******************************************************************** GET VENDOR PURCHASE ORDERS *********************************************************************//
 
-const getAllVendorPO = async( vendorId ) => {
+const getAllVendorPO = async({ vendorId, getVendorPOSuccessfn, filters, pageParam }) => {
 
   try {
 
-    let res = await Axios.get(`/VendorPO/getall/${vendorId}`)
+    let body = {
+      filters: JSON.parse(filters),
+      nextCursor: pageParam,
+      previousCursor: null,
+      limit: 100 // or whatever page size you need
+    } 
+
+    let res = await Axios.post(`/VendorPO/getall/${vendorId}`, body)
 
     if(res.data.success){
 
       console.log(res.data.data)
-      let VendorPO = [...res.data.data]
+      let VendorPOArr = [...res.data.data]
+
+      if(getVendorPOSuccessfn){
+      
+        getVendorPOSuccessfn(VendorPOArr)
+
+      }
    
-      return VendorPO
+      return res.data
     
     }else{
       throw new Error('Failed to fetch all vendor po', vendorId)
@@ -186,14 +242,21 @@ const getAllVendorPO = async( vendorId ) => {
 
 }
 
-export const useGetVendorPO = ( vendorId ) => {
+export const useGetVendorPO = ( vendorId, getVendorPOSuccessfn, filters ) => {
 
-  return useQuery({ 
+  return useInfiniteQuery({ 
 
-    queryKey: [`vendorPOs-${vendorId}`], 
-    queryFn:()=>getAllVendorPO( vendorId ),
+    queryKey: [`vendorPOs-${vendorId}`, filters], 
+    queryFn:({queryKey, pageParam})=>getAllVendorPO({ vendorId, getVendorPOSuccessfn, filters: queryKey[1], pageParam }),
+    initialPageParam: null, 
     staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 10
+    gcTime: 1000 * 60 * 10,
+    getNextPageParam: ( lastPage, allPages, lastPageParam, allPageParams ) => {
+      console.log(lastPage, allPages, lastPageParam, allPageParams)
+      return lastPage?.nextCursor || undefined
+     },
+     // getPreviousPageParam: (firstPage) => firstPage?.prevCursor || undefined,
+     maxPages:3
 
   })
 

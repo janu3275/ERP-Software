@@ -90,7 +90,7 @@ const VendorInfoform = ({ selectedVendor, UpdateVendor}) => {
   return (
     
     <form onSubmit={handleSubmit(data=>UpdateVendor({data, Vendorid:`${selectedVendor.id}`}))} >
-       <div style={{gap: "20px", flexDirection: "column", display: "flex" }}>
+       <div style={{gap: "20px", flexDirection: "column", display: "flex", marginTop:"30px"  }}>
 
        <Controller
           name="product_type"

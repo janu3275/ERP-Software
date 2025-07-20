@@ -5,6 +5,7 @@ import Table from "../../../commoncomponents/tableComponent/table";
 import { returnAllemployee, returnAttendanceStatusEle, returnConvertedDate, returnItems, returnOtherEle } from "../../../../commonfn";
 import StackedImages from "../../../../assets/singlecomponents/stackedimages/stackedimages";
 import { statusItems } from "../../orders/allOrders/staticOptions";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 
 
@@ -116,7 +117,7 @@ const convertDataForTable = (data, positems, departitems) => {
        const header =  [
         {
             "columnName": "Photo",
-            "type": "string",
+            "type": "attachment/link",
             "colNo": 1,
             "width": 100,
             "sorted": null
@@ -310,8 +311,32 @@ return tableData
 
         <div className="normalDialog">
      <div className="infocomp">
-        <div style={{fontSize:"17px", fontWeight:"500", color:"#0f0f0f"}}>{returnConvertedDate(choosenDate)}</div>
-       
+        <div style={{ fontWeight:"500", color:"#0f0f0f", border:"1px solid rgba(55, 53, 47, 0.09)", borderRadius:"4px", width:"fit-content", padding:"5px 8px"}}>{returnConvertedDate(choosenDate)}</div>
+        {attendanceExisted?<div style={{position:"absolute", top:"10px", right:"20px" , background:"rgba(219, 237, 219, 0.39)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"4px", padding:"2px 14px 2px 8px" , alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        <Icon
+      icon="hugeicons:tick-03"
+      style={{
+      width: "1.2rem",
+      height: "1.2rem",
+      color: "rgb(30 197 2)",
+      cursor: "pointer"
+     }} />
+     </div>
+     <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis",  minHeight:"25px", display:"flex", alignItems:"center"}}>Attendance marked</div>
+     </div>:
+      <div style={{position:"absolute", top:"10px", right:"20px", background:"rgb(255 212 87 / 23%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"4px", padding:"2px 14px 2px 8px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+      <Icon
+    icon="radix-icons:dot-filled"
+    style={{
+    width: "1.2rem",
+    height: "1.2rem",
+    color: "rgb(230 191 76)",
+    cursor: "pointer"
+   }} />
+   </div>
+   <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>Attendance pending</div>
+   </div>
+     }
         <div style={{position:"relative", marginBottom:"100px"}}>
       
 

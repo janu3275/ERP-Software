@@ -4,7 +4,6 @@ import imageCompression from 'browser-image-compression';
 import Cashicon from "./assets/icons/reshot-icon-money-2AJCZGWB6U.svg";
 import Chequeicon from "./assets/icons/cheque-finance-business-svgrepo-com.svg";
 import UPIIcon from "./assets/icons/upi-payment-icon.svg";
-import Upiicon from "./assets/icons/🦆 icon _UPI id_ (1).png";
 import OtherIcon from "./assets/icons/apps-grid-icon.svg";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { createRoot } from "react-dom/client";
@@ -27,6 +26,16 @@ export function toCamelCase(str) {
 
   // Join the words and return
   return words.join(' ');
+}
+
+export function removeSpaces(str) {
+  
+  if(!str){
+    return ""
+  }
+
+  return str.replace(/\s+/g, '');
+
 }
 
 export function blobToBase64(blob) {
@@ -67,7 +76,14 @@ export function removeObjectKey(obj, keyToRemove) {
   }
 
   export function returnItems(arr, label, value, name) {
-
+     if(!arr){
+      return [ 
+        {
+          label: name,
+          items: [],
+        }
+      ]
+     }
     let newarr = arr.map((obj) => {
         return {
         label: returnOtherEle(obj[label]),
@@ -505,7 +521,7 @@ export const returnValue = ( id, items ) => {
 
 export const calculatePaid = (paidOptionInfo) => {
   let total = 0
- 
+    console.log(paidOptionInfo)
     let cash = paidOptionInfo[0]?.amount || 0
     let upi = paidOptionInfo[1]?.amount || 0
     let cheque = paidOptionInfo[2]?.amount || 0
@@ -629,11 +645,20 @@ export const returnPaymentTableIcon = (option) => {
    if(option.via==='Other'){
     return (
     <div style={{padding:0, border:0}} className="Otherdiv">
-      <img src={OtherIcon} style={{ height: "20px", width: "15px" }} />
+      {/* <img src={OtherIcon} style={{ height: "20px", width: "15px" }} /> */}
+      <Icon
+    icon="pepicons-pop:dots-x-circle"
+    style={{
+    width: "15px",
+    height: "15px",
+    color: "black",
+    cursor: "pointer",
+   }} />
     </div>
     )
    }
 }
+
 
 export const paidOptionInfoArr = [
   {
@@ -773,26 +798,26 @@ export const returnBoolEle = (bool)=> {
 
 export const returnCategoryEle = (category)=> {
   if(category==="Customer payments"){
-    return <div style={{background:"rgb(219, 237, 219)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"2px 5px" , paddingRight:"12px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+    return <div style={{background:"rgb(219 237 219 / 39%)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"2px 5px" , paddingRight:"12px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
       <Icon
     icon="flowbite:arrow-up-outline"
     style={{
     width: "1.2rem",
     height: "1.2rem",
-    color: "rgb(108, 155, 125)",
+    color: "rgb(30, 197, 2)",
     cursor: "pointer",
    }} />
    </div>
    <div style={{display:"flex", alignItems:"center", minHeight:"22px"}}>{category}</div>
    </div>
   }else{
-    return <div style={{background:"rgb(255, 226, 221)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"2px 5px", paddingRight:"12px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+    return <div style={{background:"rgb(255 226 221 / 44%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"2px 5px", paddingRight:"12px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
       <Icon
     icon="flowbite:arrow-down-outline"
     style={{
     width: "1.2rem",
     height: "1.2rem",
-    color: "rgb(225, 111, 100)",
+    color: "rgb(228 8 8)",
     cursor: "pointer",
    }} />
    </div>
@@ -803,26 +828,26 @@ export const returnCategoryEle = (category)=> {
 
   export const returnPaymenStatusEle = (status) => {
     if(status==="paid"){
-      return <div style={{background:"rgb(219, 237, 219)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+      return <div style={{background:"rgba(219, 237, 219, 0.39)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
         <Icon
       icon="radix-icons:dot-filled"
       style={{
       width: "1.2rem",
       height: "1.2rem",
-      color: "rgb(108, 155, 125)",
+      color: "rgb(30 197 2)",
       cursor: "pointer",
      }} />
      </div>
      <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis",  minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
      </div>
     }else{
-      return <div style={{background:"rgb(255 251 221)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+      return <div style={{background:"rgb(255 212 87 / 23%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
         <Icon
       icon="radix-icons:dot-filled"
       style={{
       width: "1.2rem",
       height: "1.2rem",
-      color: "rgb(225 208 100)",
+      color: "rgb(230 191 76)",
       cursor: "pointer",
      }} />
      </div>
@@ -834,26 +859,26 @@ export const returnCategoryEle = (category)=> {
 
     export const returnAttendanceStatusEle = (status) => {
       if(status==="present"){
-        return <div style={{background:"rgb(219, 237, 219)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgba(219, 237, 219, 0.39)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(108, 155, 125)",
+        color: "rgb(30 197 2)",
         cursor: "pointer",
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis",  minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else{
-        return <div style={{background:"rgb(255, 226, 221)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(255 226 221 / 44%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(225, 111, 100)",
+        color: "rgb(228 8 8)",
         cursor: "pointer",
        }} />
        </div>
@@ -865,7 +890,7 @@ export const returnCategoryEle = (category)=> {
 
     export const returnOtherEle = (status) => {
       
-        return <div style={{background:"rgba(227, 226, 224, 0.5)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"3px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}>
+        return <div style={{background:"rgb(233 233 233 / 50%)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"3px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}>
 
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis",  minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
@@ -874,7 +899,7 @@ export const returnCategoryEle = (category)=> {
 
     export const returnOrderStatusEle = (status) => {
       if(status==="Not yet started"){
-        return <div style={{background:"rgba(227, 226, 224, 0.5)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(233 233 233 / 50%)", color:"rgb(28, 56, 41)",  display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px" , paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
@@ -887,7 +912,7 @@ export const returnCategoryEle = (category)=> {
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis",  minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="In process"){
-        return <div style={{background:"rgb(221 231 255)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(234 240 255)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
@@ -900,66 +925,66 @@ export const returnCategoryEle = (category)=> {
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="completed"){
-        return <div style={{background:"rgb(228 221 255)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgba(219, 237, 219, 0.39)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(155 100 225)",
+        color: "rgb(30 197 2)",
         cursor: "pointer",
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="sent for dilevery"){
-        return <div style={{background:"rgb(214 255 214)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(255 255 156 / 40%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(99 184 64)",
+        color: "rgb(200 200 122)",
         cursor: "pointer",
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="dilevered"){
-        return <div style={{background:"rgb(219, 237, 219)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgba(219, 237, 219, 0.39)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(108, 155, 125)",
+        color: "rgb(30 197 2)",
         cursor: "pointer",
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="hold"){
-        return <div style={{background:"rgb(255 243 221)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(255 212 87 / 23%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(225 170 100)",
+        color: "rgb(230 191 76)",
         cursor: "pointer",
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
        </div>
       }else if(status==="removed"){
-        return <div style={{background:"rgb(255, 226, 221)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
+        return <div style={{background:"rgb(255 226 221 / 44%)",  color:"rgb(28, 56, 41)", display:"flex", gap:"2px", borderRadius:"33px", padding:"0px 5px", paddingRight:"14px", alignItems:"center"}}><div style={{height:"fit-content", display:"flex", alignItems:"center"}}>
           <Icon
         icon="radix-icons:dot-filled"
         style={{
         width: "1.2rem",
         height: "1.2rem",
-        color: "rgb(225 111 100)",
-        cursor: "pointer",
+        color: "rgb(228 8 8)",
+        cursor: "pointer"
        }} />
        </div>
        <div style={{whiteSpace:"nowrap", textOverflow:"ellipsis", minHeight:"25px", display:"flex", alignItems:"center"}}>{toCamelCase(status)}</div>
